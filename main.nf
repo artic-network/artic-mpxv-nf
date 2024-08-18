@@ -575,7 +575,7 @@ workflow {
       scheme_dir_name = "primer_schemes"
       schemes = """./data/${scheme_dir_name}/${params.scheme_name}"""
       scheme_dir = file(projectDir.resolve(schemes), type:'file', checkIfExists:true)
-      scheme_dir.view()
+      println scheme_dir
     
       primers_path = """./data/${scheme_dir_name}/${params.scheme_name}/${params.scheme_version}/${params.scheme_name}.scheme.bed"""
       primers = file(projectDir.resolve(primers_path), type:'file', checkIfExists:true)
