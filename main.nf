@@ -25,7 +25,6 @@ process runArtic {
     cpus params.artic_threads
     input:
         tuple val(meta), path(fastq_file), path(fastq_stats)
-        path scheme_dir
     output:
         path "${meta.alias}.consensus.fasta", emit: consensus
         path "${meta.alias}.depth.txt", emit: depth_stats
