@@ -29,7 +29,7 @@ process runArtic {
         path ref
     output:
         path "${meta.alias}.consensus.fasta", emit: consensus
-        path "${meta.alias}.depth.txt", emit: depth_stats
+        // path "${meta.alias}.depth.txt", emit: depth_stats
         path "${meta.alias}.pass.named.stats", emit: vcf_stats
         path "${meta.alias}.artic.log.txt", emit: artic_log
         tuple(

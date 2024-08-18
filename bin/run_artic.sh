@@ -66,14 +66,14 @@ bcftools index -t "${sample_name}.normalised.named.vcf.gz"
 sed -i "s/^>\S*/>${sample_name}/" "${sample_name}.consensus.fasta"
 
 # calculate depth stats. Final output is single file annotated with primer set and sample name
-for i in 1 2; do
-    bam="${sample_name}.primertrimmed.${i}.sorted.bam"
-    samtools view -r ${i} -b "${sample_name}.primertrimmed.rg.sorted.bam" > ${bam}
-    samtools index ${bam}
-    stats_from_bam ${bam} > "${bam}.stats" || echo "stats_from_bam failed, probably no alignments"
-    coverage_from_bam -s 20 -p ${bam} ${bam}
-    # TODO: we're assuming a single reference sequence here
-    awk 'BEGIN{OFS="\t"}{if(NR==1){print $0, "sample_name", "primer_set"}else{print $0, "'${sample_name}'", "'${i}'"}}' *${bam}*".depth.txt" > "${sample_name}.depth.${i}.txt"
-    rm -rf ${bam} ${bam}.bai
+# for i in 1 2; do
+#     bam="${sample_name}.primertrimmed.${i}.sorted.bam"
+#     samtools view -r ${i} -b "${sample_name}.primertrimmed.rg.sorted.bam" > ${bam}
+#     samtools index ${bam}
+#     # stats_from_bam ${bam} > "${bam}.stats" || echo "stats_from_bam failed, probably no alignments"
+#     # coverage_from_bam -s 20 -p ${bam} ${bam}
+#     # TODO: we're assuming a single reference sequence here
+#     awk 'BEGIN{OFS="\t"}{if(NR==1){print $0, "sample_name", "primer_set"}else{print $0, "'${sample_name}'", "'${i}'"}}' *${bam}*".depth.txt" > "${sample_name}.depth.${i}.txt"
+#     rm -rf ${bam} ${bam}.bai
 done
 cat "${sample_name}.depth.1.txt" <(tail -n+2 "${sample_name}.depth.2.txt") > "${sample_name}.depth.txt"
