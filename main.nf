@@ -65,7 +65,7 @@ process runArtic {
         ${basecall_model}:consensus  ${bed} ${ref} \
         ${task.cpus} ${params._max_softclip_length} ${params.normalise} \
         > ${meta.alias}.artic.log.txt 2>&1
-    bcftools stats ${meta.alias}.pass.named.vcf.gz > ${meta.alias}.pass.named.stats
+    bcftools stats ${meta.alias}.normalised.named.vcf.gz > ${meta.alias}.pass.named.stats
     """
 }
 
