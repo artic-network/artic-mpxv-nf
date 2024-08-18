@@ -368,8 +368,8 @@ process get_bed_ref {
     cpus 1
     input:
         path scheme_dir
-        path scheme_name
-        path scheme_version
+        val scheme_name
+        val scheme_version
     output:
         path "scheme.bed", emit: bed
         path "reference.fasta", emit: ref
