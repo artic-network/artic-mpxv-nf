@@ -15,10 +15,10 @@ threads=$8
 max_softclip_length=${9}
 normalise=${10}
 
-if [[ "$scheme_version" == "None" ]];
-then
-    scheme_version="."
-fi
+# if [[ "$scheme_version" == "None" ]];
+# then
+#     scheme_version="."
+# fi
 
 function mock_artic {
     # write an empty VCF
@@ -49,12 +49,11 @@ artic guppyplex --skip-quality-check \
 # the output of the above will be...
 READFILE="${sample_name}_${sample_name}.fastq"
 
-artic minion --medaka --normalise ${normalise} --threads ${threads} \
+artic minion --normalise ${normalise} --threads ${threads} \
     --read-file ${READFILE} \
     --model ${medaka_model} \
     --bed ${bedfile} \
     --ref ${reference} \
-    --max-softclip-length ${max_softclip_length} \
     ${sample_name} \
     || mock_artic
 

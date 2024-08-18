@@ -25,6 +25,8 @@ process runArtic {
     cpus params.artic_threads
     input:
         tuple val(meta), path(fastq_file), path(fastq_stats)
+        path bed
+        path ref
     output:
         path "${meta.alias}.consensus.fasta", emit: consensus
         path "${meta.alias}.depth.txt", emit: depth_stats
@@ -61,10 +63,11 @@ process runArtic {
             "sample '$meta.alias'. Please provide it with the " + \
             "`--override_basecaller_cfg` parameter."
     }
+
     """
     run_artic.sh \
         ${meta.alias} ${fastq_file} ${params._min_len} ${params._max_len} \
-        ${basecall_model}:consensus  \
+        ${basecall_model}:consensus  ${bed} ${ref} \
         ${task.cpus} ${params._max_softclip_length} ${params.normalise} \
         > ${meta.alias}.artic.log.txt 2>&1
     bcftools stats ${meta.alias}.pass.named.vcf.gz > ${meta.alias}.pass.named.stats
@@ -143,7 +146,7 @@ process getVersions {
 
 
 process getParams {
-    label "artic"
+    label "wf_common"
     cpus 1
     output:
         path "params.json"
@@ -375,8 +378,8 @@ process get_bed_ref {
         path "reference.fasta", emit: ref
 
     """
-    cp ${scheme_dir}/${scheme_name}/${scheme_version}/${scheme_name}.scheme.bed scheme.bed
-    cp ${scheme_dir}/${scheme_name}/${scheme_version}/${scheme_name}.reference.fasta reference.fasta
+    cp ${scheme_name}/${scheme_version}/${scheme_name}.scheme.bed scheme.bed
+    cp ${scheme_name}/${scheme_version}/${scheme_name}.reference.fasta reference.fasta
     """
 }
 
@@ -395,14 +398,14 @@ workflow pipeline {
         nextclade_data_tag
     main:
         software_versions = getVersions()
-        workflow_params = getParams()
+        // workflow_params = getParams()
         combined_genotype_summary = Channel.empty()
 
         // get the bed and reference files
         get_bed_ref(scheme_dir, scheme_name, scheme_version)
 
-        params._bed = get_bed_ref.out.bed
-        params._reference = get_bed_ref.out.ref
+        // params._bed = get_bed_ref.out.bed.toString()
+        // params._reference = get_bed_ref.out.ref.toString()
 
         if ((samples.getClass() == String) && (samples.startsWith("Error"))){
             samples = channel.of(samples)
@@ -422,7 +425,7 @@ workflow pipeline {
                     [meta, reads, stats]
                 }
             }
-            artic = runArtic(samples)
+            artic = runArtic(samples, get_bed_ref.out.bed, get_bed_ref.out.ref)
             all_depth = combineDepth(artic.depth_stats.collect())
             // collate consensus and variants
             all_consensus = allConsensus(artic.consensus.collect())
@@ -575,7 +578,6 @@ workflow {
       scheme_dir_name = "primer_schemes"
       schemes = """./data/${scheme_dir_name}/${params.scheme_name}"""
       scheme_dir = file(projectDir.resolve(schemes), type:'file', checkIfExists:true)
-      println scheme_dir
     
       primers_path = """./data/${scheme_dir_name}/${params.scheme_name}/${params.scheme_version}/${params.scheme_name}.scheme.bed"""
       primers = file(projectDir.resolve(primers_path), type:'file', checkIfExists:true)
@@ -667,7 +669,7 @@ workflow {
         "analyse_unclassified":params.analyse_unclassified,
         "allow_multiple_basecall_models":false,
     ])
-
+    
     results = pipeline(samples, scheme_dir, params._scheme_name, params._scheme_version, reference,
         primers, ref_variants, nextclade_dataset, nextclade_data_tag)
         | output
