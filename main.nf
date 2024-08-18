@@ -367,17 +367,17 @@ process get_bed_ref {
     label "artic"
     cpus 1
     input:
-        file scheme_directory
-        file scheme_name
-        file scheme_version
+        path scheme_dir
+        path scheme_name
+        path scheme_version
     output:
         path "scheme.bed", emit: bed
         path "reference.fasta", emit: ref
 
     """
-    scheme_dir = "$scheme_directory/$scheme_name/$scheme_version"
-    cp $scheme_dir/$scheme_name.scheme.bed scheme.bed
-    cp $scheme_dir/$scheme_name.reference.fasta reference.fasta
+    scheme_dir = "${scheme_dir}/${scheme_name}/${scheme_version}"
+    cp ${scheme_dir}/${scheme_name}.scheme.bed scheme.bed
+    cp ${scheme_dir}/${scheme_name}.reference.fasta reference.fasta
     """
 }
 
@@ -474,6 +474,12 @@ workflow pipeline {
                     combined_genotype_summary,
                     pangolin.out.report,
                     all_depth)
+                } else {
+                    results = all_consensus[0].concat(
+                        all_consensus[1],
+                        all_variants[0].flatten(),
+                        artic.primertrimmed_bam.flatMap { it -> [ it[1], it[2] ] },
+                        artic.pass_vcf.flatMap
                 }
 
             }
