@@ -439,13 +439,14 @@ workflow pipeline {
                 genotype_summary = Channel.fromPath("$projectDir/data/OPTIONAL_FILE")
             }
 
+            software_versions = software_versions.mix(pangolin.out.version,nextclade.out.version)
+
             if (params.scheme_name == "SARS-CoV-2"){
                 // nextclade
                 clades = nextclade(
                     all_consensus[0], nextclade_dataset, nextclade_data_tag)
                 // pangolin
                 pangolin(all_consensus[0])
-                software_versions = software_versions.mix(pangolin.out.version,nextclade.out.version)
 
                 // report
                 html_doc = report(
@@ -480,7 +481,8 @@ workflow pipeline {
                         all_consensus[1],
                         all_variants[0].flatten(),
                         artic.primertrimmed_bam.flatMap { it -> [ it[1], it[2] ] },
-                        artic.pass_vcf.flatMap)
+                        artic.pass_vcf.flatMap { it -> [ it[1], it[2] ] },
+                        artic.artic_log)
                 }
             }
     emit:
