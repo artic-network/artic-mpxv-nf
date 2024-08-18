@@ -372,9 +372,9 @@ process get_bed_ref {
         file scheme_name
         file scheme_version
     output:
-        file "scheme.bed", emit: bed
-        file "reference.fasta", emit: ref
-    script:
+        path "scheme.bed", emit: bed
+        path "reference.fasta", emit: ref
+
     """
     scheme_dir = "$scheme_directory/$scheme_name/$scheme_version"
     cp $scheme_dir/$scheme_name.scheme.bed scheme.bed
