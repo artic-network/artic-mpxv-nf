@@ -57,10 +57,8 @@ artic minion --normalise ${normalise} --threads ${threads} \
     ${sample_name} \
     || mock_artic
 
-# for vcf_set in "pass" "merged.gvcf"; do
 zcat "${sample_name}.normalised.vcf.gz" | sed "s/SAMPLE/${sample_name}/" | bgzip > "${sample_name}.normalised.named.vcf.gz"
 bcftools index -t "${sample_name}.normalised.named.vcf.gz"
-# done;
 
 # rename the consensus sequence
 sed -i "s/^>\S*/>${sample_name}/" "${sample_name}.consensus.fasta"
@@ -75,5 +73,5 @@ sed -i "s/^>\S*/>${sample_name}/" "${sample_name}.consensus.fasta"
 #     # TODO: we're assuming a single reference sequence here
 #     awk 'BEGIN{OFS="\t"}{if(NR==1){print $0, "sample_name", "primer_set"}else{print $0, "'${sample_name}'", "'${i}'"}}' *${bam}*".depth.txt" > "${sample_name}.depth.${i}.txt"
 #     rm -rf ${bam} ${bam}.bai
-done
-cat "${sample_name}.depth.1.txt" <(tail -n+2 "${sample_name}.depth.2.txt") > "${sample_name}.depth.txt"
+# done
+# cat "${sample_name}.depth.1.txt" <(tail -n+2 "${sample_name}.depth.2.txt") > "${sample_name}.depth.txt"
