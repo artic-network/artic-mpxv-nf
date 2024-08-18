@@ -438,6 +438,7 @@ workflow pipeline {
             } else {
                 genotype_summary = Channel.fromPath("$projectDir/data/OPTIONAL_FILE")
             }
+
             if (params.scheme_name == "SARS-CoV-2"){
                 // nextclade
                 clades = nextclade(
@@ -479,12 +480,9 @@ workflow pipeline {
                         all_consensus[1],
                         all_variants[0].flatten(),
                         artic.primertrimmed_bam.flatMap { it -> [ it[1], it[2] ] },
-                        artic.pass_vcf.flatMap
+                        artic.pass_vcf.flatMap)
                 }
-
             }
-    emit:
-        results
 }
 
 
