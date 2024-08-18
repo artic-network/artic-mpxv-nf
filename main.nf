@@ -439,14 +439,14 @@ workflow pipeline {
                 genotype_summary = Channel.fromPath("$projectDir/data/OPTIONAL_FILE")
             }
 
-            software_versions = software_versions.mix(pangolin.out.version,nextclade.out.version)
-
             if (params.scheme_name == "SARS-CoV-2"){
                 // nextclade
                 clades = nextclade(
                     all_consensus[0], nextclade_dataset, nextclade_data_tag)
                 // pangolin
                 pangolin(all_consensus[0])
+
+                software_versions = software_versions.mix(pangolin.out.version,nextclade.out.version)
 
                 // report
                 html_doc = report(
