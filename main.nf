@@ -421,7 +421,7 @@ workflow pipeline {
                 }
             }
             artic = runArtic(samples, get_bed_ref.out.bed, get_bed_ref.out.ref)
-            all_depth = combineDepth(artic.depth_stats.collect())
+            // all_depth = combineDepth(artic.depth_stats.collect())
             // collate consensus and variants
             all_consensus = allConsensus(artic.consensus.collect())
             all_variants = allVariants(
