@@ -1,374 +1,375 @@
 {
-    "$schema": "http://json-schema.org/draft-07/schema",
-    "$id": "https://raw.githubusercontent.com/./master/nextflow_schema.json",
-    "title": "epi2me-labs/wf-artic",
-    "workflow_title": "Artic Network SARS-CoV-2 Analysis",
-    "description": "Run the ARTIC SARS-CoV-2 methodology on multiplexed MinION, GridION, and PromethION data.",
-    "demo_url": "https://ont-exd-int-s3-euwst1-epi2me-labs.s3.amazonaws.com/wf-artic/wf-artic-demo.tar.gz",
-    "aws_demo_url": "https://ont-exd-int-s3-euwst1-epi2me-labs.s3.amazonaws.com/wf-artic/wf-artic-demo/aws.nextflow.config",
-    "url": "https://github.com/epi2me-labs/wf-artic",
-    "type": "object",
-    "definitions": {
-        "input": {
-            "title": "Input Options",
-            "type": "object",
-            "fa_icon": "fas fa-arrow-right",
-            "description": "Parameters for finding and handling input data for analysis.",
-            "properties": {
-                "fastq": {
-                    "type": "string",
-                    "title": "FASTQ",
-                    "format": "path",
-                    "description": "FASTQ files to use in the analysis.",
-                    "help_text": "This accepts one of three cases: (i) the path to a single FASTQ file; (ii) the path to a top-level directory containing FASTQ files; (iii) the path to a directory containing one level of sub-directories which in turn contain FASTQ files. In the first and second case, a sample name can be supplied with `--sample`. In the last case, the data is assumed to be multiplexed with the names of the sub-directories as barcodes. In this case, a sample sheet can be provided with `--sample_sheet`."
-                },
-                "analyse_unclassified": {
-                    "type": "boolean",
-                    "default": false,
-                    "description": "Analyse unclassified reads from input directory. By default the workflow will not process reads in the unclassified directory.",
-                    "help_text": "If selected and if the input is a multiplex directory the workflow will also process the unclassified directory."
-                }
-            },
-            "required": [
-                "fastq"
-            ]
+  "$schema": "http://json-schema.org/draft-07/schema",
+  "$id": "https://raw.githubusercontent.com/./master/nextflow_schema.json",
+  "title": "epi2me-labs/wf-artic",
+  "workflow_title": "Artic Network SARS-CoV-2 Analysis",
+  "description": "Run the ARTIC SARS-CoV-2 methodology on multiplexed MinION, GridION, and PromethION data.",
+  "demo_url": "https://ont-exd-int-s3-euwst1-epi2me-labs.s3.amazonaws.com/wf-artic/wf-artic-demo.tar.gz",
+  "aws_demo_url": "https://ont-exd-int-s3-euwst1-epi2me-labs.s3.amazonaws.com/wf-artic/wf-artic-demo/aws.nextflow.config",
+  "url": "https://github.com/epi2me-labs/wf-artic",
+  "type": "object",
+  "definitions": {
+    "input": {
+      "title": "Input Options",
+      "type": "object",
+      "fa_icon": "fas fa-arrow-right",
+      "description": "Parameters for finding and handling input data for analysis.",
+      "properties": {
+        "fastq": {
+          "type": "string",
+          "title": "FASTQ",
+          "format": "path",
+          "description": "FASTQ files to use in the analysis.",
+          "help_text": "This accepts one of three cases: (i) the path to a single FASTQ file; (ii) the path to a top-level directory containing FASTQ files; (iii) the path to a directory containing one level of sub-directories which in turn contain FASTQ files. In the first and second case, a sample name can be supplied with `--sample`. In the last case, the data is assumed to be multiplexed with the names of the sub-directories as barcodes. In this case, a sample sheet can be provided with `--sample_sheet`."
         },
-        "primer_scheme_selection": {
-            "title": "Primer Scheme Selection",
-            "type": "object",
-            "fa_icon": "fas fa-code",
-            "description": "Reference genome related files and options required for the workflow.",
-            "properties": {
-                "scheme_name": {
-                    "type": "string",
-                    "default": "SARS-CoV-2",
-                    "description": "Primer scheme name.",
-                    "help_text": "This should be set to `SARS-CoV-2`, or `spike-seq` or your custom scheme name. This affects the choice of scheme versions you can use. The only scheme versions compatible with `spike-seq` are `ONT/V1` and `ONT/V4.1`"
-                },
-                "scheme_version": {
-                    "type": "string",
-                    "default": "ARTIC/V3",
-                    "description": "Primer scheme version.",
-                    "help_text": "This is the version of the primer scheme to use, more details about primer shemes can be found [here](https://labs.epi2me.io/ont-midnight-scheme-update/).",
-                    "enum": [
-                        "ARTIC/V1",
-                        "ARTIC/V2",
-                        "ARTIC/V3",
-                        "ARTIC/V4",
-                        "ARTIC/V4.1",
-                        "ARTIC/V5.3.2",
-                        "Midnight-ONT/V1",
-                        "Midnight-ONT/V2",
-                        "Midnight-ONT/V3",
-                        "NEB-VarSkip/v2b",
-                        "NEB-VarSkip/v1a-long",
-                        "NEB-VarSkip/v2",
-                        "NEB-VarSkip/v1a",
-                        "Midnight-IDT/V1",
-                        "Midnight-IDT/V2",
-                        "ONT/V1",
-                        "ONT/V4.1"
-                    ]
-                },
-                "custom_scheme": {
-                    "type": "string",
-                    "format": "path",
-                    "description": "Path to a custom scheme.",
-                    "help_text": "If you have a custom primer scheme you can enter the details here. This must be the full path to the directory containing your appropriately named scheme bed and fasta files; <SCHEME_NAME>.bed and <SCHEME_NAME>.fasta. More details [here](https://labs.epi2me.io/ont-midnight-scheme-update/)."
-                }
-            }
-        },
-        "samples": {
-            "title": "Sample Options",
-            "type": "object",
-            "fa_icon": "fas fa-vials",
-            "description": "Parameters that relate to samples such as sample sheets and sample names.",
-            "properties": {
-                "sample_sheet": {
-                    "type": "string",
-                    "format": "file-path",
-                    "description": "A CSV file used to map barcodes to sample aliases. The sample sheet can be provided when the input data is a directory containing sub-directories with FASTQ files.",
-                    "help_text": "The sample sheet is a CSV file with, minimally, columns named `barcode` and `alias`. Extra columns are allowed. A `type` column is required for certain workflows and should have the following values; `test_sample`, `positive_control`, `negative_control`, `no_template_control`."
-                },
-                "sample": {
-                    "type": "string",
-                    "description": "A single sample name for non-multiplexed data. Permissible if passing a single .fastq(.gz) file or directory of .fastq(.gz) files."
-                }
-            }
-        },
-        "output": {
-            "title": "Output Options",
-            "type": "object",
-            "fa_icon": "fas fa-arrow-left",
-            "description": "Parameters for saving and naming workflow outputs.",
-            "properties": {
-                "out_dir": {
-                    "type": "string",
-                    "default": "output",
-                    "format": "directory-path",
-                    "description": "Directory for output of all workflow results."
-                }
-            }
-        },
-        "reporting_options": {
-            "title": "Reporting Options",
-            "type": "object",
-            "description": "Options controlling report outputs",
-            "default": "",
-            "properties": {
-                "report_depth": {
-                    "type": "integer",
-                    "default": 100,
-                    "description": "Min. depth for percentage coverage. (e.g. 89% genome covered at > `report_depth`)",
-                    "minimum": 0,
-                    "maximum": 100
-                },
-                "report_clade": {
-                    "type": "boolean",
-                    "default": true,
-                    "description": "Show results of Nextclade analysis in report."
-                },
-                "report_coverage": {
-                    "type": "boolean",
-                    "default": true,
-                    "description": "Show genome coverage traces in report."
-                },
-                "report_lineage": {
-                    "type": "boolean",
-                    "default": true,
-                    "description": "Show results of Pangolin analysis in report."
-                },
-                "report_variant_summary": {
-                    "type": "boolean",
-                    "default": true,
-                    "description": "Show variant information in report."
-                }
-            },
-            "fa_icon": "fas fa-address-card",
-            "help_text": ""
-        },
-        "advanced_options": {
-            "title": "Advanced Options",
-            "type": "object",
-            "fa_icon": "far fa-question-circle",
-            "description": "Advanced options for configuring processes inside the workflow.",
-            "help_text": "These advanced options do not need to be changed for typical use, but allow fine tuning of workflows for users who want more control over the workflow.",
-            "properties": {
-                "artic_threads": {
-                    "type": "number",
-                    "description": "Number of CPU threads to use per artic task.",
-                    "help_text": "The total CPU resource used by the workflow is constrained by the executor configuration.",
-                    "minimum": 1,
-                    "default": 4
-                },
-                "pangolin_threads": {
-                    "type": "number",
-                    "description": "Number of CPU threads to use per pangolin task.",
-                    "help_text": "The total CPU resource used by the workflow is constrained by the executor configuration.",
-                    "minimum": 1,
-                    "default": 4
-                },
-                "genotype_variants": {
-                    "type": "string",
-                    "description": "Report genotyping information for scheme's known variants of interest, optionally provide file path as argument."
-                },
-                "list_schemes": {
-                    "type": "boolean",
-                    "default": false,
-                    "description": "List primer schemes and exit without running analysis."
-                },
-                "min_len": {
-                    "type": "number",
-                    "title": "Minimum read length",
-                    "minimum": 50,
-                    "maximum": 10000,
-                    "description": "Minimum read length (default: set by scheme)."
-                },
-                "max_len": {
-                    "type": "number",
-                    "title": "Maximum read length",
-                    "minimum": 50,
-                    "maximum": 10000,
-                    "description": "Maximum read length (default: set by scheme)."
-                },
-                "max_softclip_length": {
-                    "type": "integer",
-                    "title": "Maximum soft clip length",
-                    "description": "Remove reads with alignments showing large soft clipping"
-                },
-                "update_data": {
-                    "type": "boolean",
-                    "default": true,
-                    "description": "Update Pangolin and Nextclade data at runtime."
-                },
-                "pangolin_options": {
-                    "type": "string",
-                    "description": "Pass options to Pangolin, for example \"--analysis-mode fast --min-length 26000\"."
-                },
-                "nextclade_data_tag": {
-                    "type": "string",
-                    "description": "The tag of the nextclade data packet",
-                    "hidden": false
-                },
-                "normalise": {
-                    "type": "integer",
-                    "default": 200,
-                    "description": "Depth ceiling for depth of coverage normalisation"
-                },
-                "override_basecaller_cfg": {
-                    "type": "string",
-                    "title": "Override basecaller configuration",
-                    "description": "Override auto-detected basecaller model that processed the signal data; used to select an appropriate Medaka model.",
-                    "help_text": "Per default, the workflow tries to determine the basecall model from the input data. This parameter can be used to override the detected value (or to provide a model name if none was found in the inputs). However, users should only do this if they know for certain which model was used as selecting the wrong option might give sub-optimal results. A list of recent models can be found here: https://github.com/nanoporetech/dorado#DNA-models.",
-                    "enum": [
-                        "dna_r10.4.1_e8.2_400bps_sup@v5.0.0",
-                        "dna_r10.4.1_e8.2_400bps_hac@v5.0.0",
-                        "dna_r10.4.1_e8.2_400bps_sup@v4.3.0",
-                        "dna_r10.4.1_e8.2_400bps_hac@v4.3.0",
-                        "dna_r10.4.1_e8.2_400bps_sup@v4.2.0",
-                        "dna_r10.4.1_e8.2_400bps_hac@v4.2.0",
-                        "dna_r10.4.1_e8.2_260bps_hac@v4.1.0",
-                        "dna_r10.4.1_e8.2_260bps_sup@v4.1.0",
-                        "dna_r10.4.1_e8.2_400bps_hac@v4.1.0",
-                        "dna_r10.4.1_e8.2_400bps_sup@v4.1.0",
-                        "dna_r10.4.1_e8.2_260bps_hac@v4.0.0",
-                        "dna_r10.4.1_e8.2_260bps_sup@v4.0.0",
-                        "dna_r10.4.1_e8.2_400bps_hac@v4.0.0",
-                        "dna_r10.4.1_e8.2_400bps_sup@v4.0.0",
-                        "dna_r10.4.1_e8.2_400bps_hac@v3.5.2",
-                        "dna_r10.4.1_e8.2_400bps_sup@v3.5.2",
-                        "dna_r9.4.1_e8_fast@v3.4",
-                        "dna_r9.4.1_e8_hac@v3.3",
-                        "dna_r9.4.1_e8_sup@v3.3",
-                        "dna_r10.4.1_e8.2_400bps_hac_prom",
-                        "dna_r9.4.1_450bps_hac_prom",
-                        "dna_r10.3_450bps_hac",
-                        "dna_r10.3_450bps_hac_prom",
-                        "dna_r10.4.1_e8.2_260bps_hac",
-                        "dna_r10.4.1_e8.2_260bps_hac_prom",
-                        "dna_r10.4.1_e8.2_400bps_hac",
-                        "dna_r9.4.1_450bps_hac",
-                        "dna_r9.4.1_e8.1_hac",
-                        "dna_r9.4.1_e8.1_hac_prom"
-                    ]
-                }
-            }
-        },
-        "misc": {
-            "title": "Miscellaneous Options",
-            "type": "object",
-            "description": "Everything else.",
-            "default": "",
-            "properties": {
-                "lab_id": {
-                    "type": "string",
-                    "title": "Laboratory identifier",
-                    "description": "Laboratory identifier, used in reporting."
-                },
-                "testkit": {
-                    "type": "string",
-                    "title": "Test kit identifier",
-                    "description": "Test kit identifier, used in reporting."
-                },
-                "disable_ping": {
-                    "type": "boolean",
-                    "default": false,
-                    "description": "Enable to prevent sending a workflow ping."
-                },
-                "help": {
-                    "type": "boolean",
-                    "default": false,
-                    "description": "Display help text.",
-                    "fa_icon": "fas fa-question-circle",
-                    "hidden": true
-                },
-                "version": {
-                    "type": "boolean",
-                    "default": false,
-                    "description": "Display version and exit.",
-                    "fa_icon": "fas fa-question-circle",
-                    "hidden": true
-                }
-            }
+        "analyse_unclassified": {
+          "type": "boolean",
+          "default": false,
+          "description": "Analyse unclassified reads from input directory. By default the workflow will not process reads in the unclassified directory.",
+          "help_text": "If selected and if the input is a multiplex directory the workflow will also process the unclassified directory."
         }
+      },
+      "required": ["fastq"]
     },
-    "allOf": [
-        {
-            "$ref": "#/definitions/input"
+    "primer_scheme_selection": {
+      "title": "Primer Scheme Selection",
+      "type": "object",
+      "fa_icon": "fas fa-code",
+      "description": "Reference genome related files and options required for the workflow.",
+      "properties": {
+        "scheme_name": {
+          "type": "string",
+          "default": "MPXV",
+          "description": "Primer scheme name.",
+          "help_text": "This should be set to `SARS-CoV-2`, or `spike-seq` or your custom scheme name. This affects the choice of scheme versions you can use. The only scheme versions compatible with `spike-seq` are `ONT/V1` and `ONT/V4.1`"
         },
-        {
-            "$ref": "#/definitions/primer_scheme_selection"
+        "scheme_version": {
+          "type": "string",
+          "default": "MPXV/V3",
+          "description": "Primer scheme version.",
+          "help_text": "This is the version of the primer scheme to use, more details about primer shemes can be found [here](https://labs.epi2me.io/ont-midnight-scheme-update/).",
+          "enum": [
+            "ARTIC/V1",
+            "ARTIC/V2",
+            "ARTIC/V3",
+            "ARTIC/V4",
+            "ARTIC/V4.1",
+            "ARTIC/V5.3.2",
+            "Midnight-ONT/V1",
+            "Midnight-ONT/V2",
+            "Midnight-ONT/V3",
+            "NEB-VarSkip/v2b",
+            "NEB-VarSkip/v1a-long",
+            "NEB-VarSkip/v2",
+            "NEB-VarSkip/v1a",
+            "Midnight-IDT/V1",
+            "Midnight-IDT/V2",
+            "ONT/V1",
+            "ONT/V4.1",
+            "MPXV/V1",
+            "MPXV/V2",
+            "MPXV/V3"
+          ]
         },
-        {
-            "$ref": "#/definitions/samples"
-        },
-        {
-            "$ref": "#/definitions/output"
-        },
-        {
-            "$ref": "#/definitions/reporting_options"
-        },
-        {
-            "$ref": "#/definitions/advanced_options"
-        },
-        {
-            "$ref": "#/definitions/misc"
+        "custom_scheme": {
+          "type": "string",
+          "format": "path",
+          "description": "Path to a custom scheme.",
+          "help_text": "If you have a custom primer scheme you can enter the details here. This must be the full path to the directory containing your appropriately named scheme bed and fasta files; <SCHEME_NAME>.bed and <SCHEME_NAME>.fasta. More details [here](https://labs.epi2me.io/ont-midnight-scheme-update/)."
         }
-    ],
-    "properties": {
-        "aws_image_prefix": {
-            "type": "string",
-            "hidden": true
-        },
-        "aws_queue": {
-            "type": "string",
-            "hidden": true
-        },
-        "_scheme_version": {
-            "type": "string",
-            "hidden": true
-        },
-        "_scheme_name": {
-            "type": "string",
-            "hidden": true
-        },
-        "_min_len": {
-            "type": "string",
-            "hidden": true
-        },
-        "_max_len": {
-            "type": "string",
-            "hidden": true
-        },
-        "_max_softclip_length": {
-            "type": "string",
-            "hidden": true
-        },
-        "_pangolin_options": {
-            "type": "string",
-            "hidden": true
-        },
-        "monochrome_logs": {
-            "type": "boolean"
-        },
-        "validate_params": {
-            "type": "boolean",
-            "default": true
-        },
-        "show_hidden_params": {
-            "type": "boolean"
-        }
+      }
     },
-    "resources": {
-        "recommended": {
-            "cpus": 4,
-            "memory": "8GB"
+    "samples": {
+      "title": "Sample Options",
+      "type": "object",
+      "fa_icon": "fas fa-vials",
+      "description": "Parameters that relate to samples such as sample sheets and sample names.",
+      "properties": {
+        "sample_sheet": {
+          "type": "string",
+          "format": "file-path",
+          "description": "A CSV file used to map barcodes to sample aliases. The sample sheet can be provided when the input data is a directory containing sub-directories with FASTQ files.",
+          "help_text": "The sample sheet is a CSV file with, minimally, columns named `barcode` and `alias`. Extra columns are allowed. A `type` column is required for certain workflows and should have the following values; `test_sample`, `positive_control`, `negative_control`, `no_template_control`."
         },
-        "minimum": {
-            "cpus": 2,
-            "memory": "4GB"
+        "sample": {
+          "type": "string",
+          "description": "A single sample name for non-multiplexed data. Permissible if passing a single .fastq(.gz) file or directory of .fastq(.gz) files."
+        }
+      }
+    },
+    "output": {
+      "title": "Output Options",
+      "type": "object",
+      "fa_icon": "fas fa-arrow-left",
+      "description": "Parameters for saving and naming workflow outputs.",
+      "properties": {
+        "out_dir": {
+          "type": "string",
+          "default": "output",
+          "format": "directory-path",
+          "description": "Directory for output of all workflow results."
+        }
+      }
+    },
+    "reporting_options": {
+      "title": "Reporting Options",
+      "type": "object",
+      "description": "Options controlling report outputs",
+      "default": "",
+      "properties": {
+        "report_depth": {
+          "type": "integer",
+          "default": 100,
+          "description": "Min. depth for percentage coverage. (e.g. 89% genome covered at > `report_depth`)",
+          "minimum": 0,
+          "maximum": 100
         },
-        "run_time": "5 minutes per sample",
-        "arm_support": false
+        "report_clade": {
+          "type": "boolean",
+          "default": true,
+          "description": "Show results of Nextclade analysis in report."
+        },
+        "report_coverage": {
+          "type": "boolean",
+          "default": true,
+          "description": "Show genome coverage traces in report."
+        },
+        "report_lineage": {
+          "type": "boolean",
+          "default": true,
+          "description": "Show results of Pangolin analysis in report."
+        },
+        "report_variant_summary": {
+          "type": "boolean",
+          "default": true,
+          "description": "Show variant information in report."
+        }
+      },
+      "fa_icon": "fas fa-address-card",
+      "help_text": ""
+    },
+    "advanced_options": {
+      "title": "Advanced Options",
+      "type": "object",
+      "fa_icon": "far fa-question-circle",
+      "description": "Advanced options for configuring processes inside the workflow.",
+      "help_text": "These advanced options do not need to be changed for typical use, but allow fine tuning of workflows for users who want more control over the workflow.",
+      "properties": {
+        "artic_threads": {
+          "type": "number",
+          "description": "Number of CPU threads to use per artic task.",
+          "help_text": "The total CPU resource used by the workflow is constrained by the executor configuration.",
+          "minimum": 1,
+          "default": 4
+        },
+        "pangolin_threads": {
+          "type": "number",
+          "description": "Number of CPU threads to use per pangolin task.",
+          "help_text": "The total CPU resource used by the workflow is constrained by the executor configuration.",
+          "minimum": 1,
+          "default": 4
+        },
+        "genotype_variants": {
+          "type": "string",
+          "description": "Report genotyping information for scheme's known variants of interest, optionally provide file path as argument."
+        },
+        "list_schemes": {
+          "type": "boolean",
+          "default": false,
+          "description": "List primer schemes and exit without running analysis."
+        },
+        "min_len": {
+          "type": "number",
+          "title": "Minimum read length",
+          "minimum": 50,
+          "maximum": 10000,
+          "description": "Minimum read length (default: set by scheme)."
+        },
+        "max_len": {
+          "type": "number",
+          "title": "Maximum read length",
+          "minimum": 50,
+          "maximum": 10000,
+          "description": "Maximum read length (default: set by scheme)."
+        },
+        "max_softclip_length": {
+          "type": "integer",
+          "title": "Maximum soft clip length",
+          "description": "Remove reads with alignments showing large soft clipping"
+        },
+        "update_data": {
+          "type": "boolean",
+          "default": true,
+          "description": "Update Pangolin and Nextclade data at runtime."
+        },
+        "pangolin_options": {
+          "type": "string",
+          "description": "Pass options to Pangolin, for example \"--analysis-mode fast --min-length 26000\"."
+        },
+        "nextclade_data_tag": {
+          "type": "string",
+          "description": "The tag of the nextclade data packet",
+          "hidden": false
+        },
+        "normalise": {
+          "type": "integer",
+          "default": 200,
+          "description": "Depth ceiling for depth of coverage normalisation"
+        },
+        "override_basecaller_cfg": {
+          "type": "string",
+          "title": "Override basecaller configuration",
+          "description": "Override auto-detected basecaller model that processed the signal data; used to select an appropriate Medaka model.",
+          "help_text": "Per default, the workflow tries to determine the basecall model from the input data. This parameter can be used to override the detected value (or to provide a model name if none was found in the inputs). However, users should only do this if they know for certain which model was used as selecting the wrong option might give sub-optimal results. A list of recent models can be found here: https://github.com/nanoporetech/dorado#DNA-models.",
+          "enum": [
+            "dna_r10.4.1_e8.2_400bps_sup@v5.0.0",
+            "dna_r10.4.1_e8.2_400bps_hac@v5.0.0",
+            "dna_r10.4.1_e8.2_400bps_sup@v4.3.0",
+            "dna_r10.4.1_e8.2_400bps_hac@v4.3.0",
+            "dna_r10.4.1_e8.2_400bps_sup@v4.2.0",
+            "dna_r10.4.1_e8.2_400bps_hac@v4.2.0",
+            "dna_r10.4.1_e8.2_260bps_hac@v4.1.0",
+            "dna_r10.4.1_e8.2_260bps_sup@v4.1.0",
+            "dna_r10.4.1_e8.2_400bps_hac@v4.1.0",
+            "dna_r10.4.1_e8.2_400bps_sup@v4.1.0",
+            "dna_r10.4.1_e8.2_260bps_hac@v4.0.0",
+            "dna_r10.4.1_e8.2_260bps_sup@v4.0.0",
+            "dna_r10.4.1_e8.2_400bps_hac@v4.0.0",
+            "dna_r10.4.1_e8.2_400bps_sup@v4.0.0",
+            "dna_r10.4.1_e8.2_400bps_hac@v3.5.2",
+            "dna_r10.4.1_e8.2_400bps_sup@v3.5.2",
+            "dna_r9.4.1_e8_fast@v3.4",
+            "dna_r9.4.1_e8_hac@v3.3",
+            "dna_r9.4.1_e8_sup@v3.3",
+            "dna_r10.4.1_e8.2_400bps_hac_prom",
+            "dna_r9.4.1_450bps_hac_prom",
+            "dna_r10.3_450bps_hac",
+            "dna_r10.3_450bps_hac_prom",
+            "dna_r10.4.1_e8.2_260bps_hac",
+            "dna_r10.4.1_e8.2_260bps_hac_prom",
+            "dna_r10.4.1_e8.2_400bps_hac",
+            "dna_r9.4.1_450bps_hac",
+            "dna_r9.4.1_e8.1_hac",
+            "dna_r9.4.1_e8.1_hac_prom"
+          ]
+        }
+      }
+    },
+    "misc": {
+      "title": "Miscellaneous Options",
+      "type": "object",
+      "description": "Everything else.",
+      "default": "",
+      "properties": {
+        "lab_id": {
+          "type": "string",
+          "title": "Laboratory identifier",
+          "description": "Laboratory identifier, used in reporting."
+        },
+        "testkit": {
+          "type": "string",
+          "title": "Test kit identifier",
+          "description": "Test kit identifier, used in reporting."
+        },
+        "disable_ping": {
+          "type": "boolean",
+          "default": false,
+          "description": "Enable to prevent sending a workflow ping."
+        },
+        "help": {
+          "type": "boolean",
+          "default": false,
+          "description": "Display help text.",
+          "fa_icon": "fas fa-question-circle",
+          "hidden": true
+        },
+        "version": {
+          "type": "boolean",
+          "default": false,
+          "description": "Display version and exit.",
+          "fa_icon": "fas fa-question-circle",
+          "hidden": true
+        }
+      }
     }
+  },
+  "allOf": [
+    {
+      "$ref": "#/definitions/input"
+    },
+    {
+      "$ref": "#/definitions/primer_scheme_selection"
+    },
+    {
+      "$ref": "#/definitions/samples"
+    },
+    {
+      "$ref": "#/definitions/output"
+    },
+    {
+      "$ref": "#/definitions/reporting_options"
+    },
+    {
+      "$ref": "#/definitions/advanced_options"
+    },
+    {
+      "$ref": "#/definitions/misc"
+    }
+  ],
+  "properties": {
+    "aws_image_prefix": {
+      "type": "string",
+      "hidden": true
+    },
+    "aws_queue": {
+      "type": "string",
+      "hidden": true
+    },
+    "_scheme_version": {
+      "type": "string",
+      "hidden": true
+    },
+    "_scheme_name": {
+      "type": "string",
+      "hidden": true
+    },
+    "_min_len": {
+      "type": "string",
+      "hidden": true
+    },
+    "_max_len": {
+      "type": "string",
+      "hidden": true
+    },
+    "_max_softclip_length": {
+      "type": "string",
+      "hidden": true
+    },
+    "_pangolin_options": {
+      "type": "string",
+      "hidden": true
+    },
+    "monochrome_logs": {
+      "type": "boolean"
+    },
+    "validate_params": {
+      "type": "boolean",
+      "default": true
+    },
+    "show_hidden_params": {
+      "type": "boolean"
+    }
+  },
+  "resources": {
+    "recommended": {
+      "cpus": 4,
+      "memory": "8GB"
+    },
+    "minimum": {
+      "cpus": 2,
+      "memory": "4GB"
+    },
+    "run_time": "5 minutes per sample",
+    "arm_support": false
+  }
 }

@@ -5,7 +5,7 @@
       "title": "Workflow report",
       "description": "Report for all samples.",
       "mime-type": "text/html",
-      "optional": false,
+      "optional": true,
       "type": "aggregated"
     },
     "consensus": {
@@ -21,7 +21,7 @@
       "title": "Pangolin results",
       "description": "Pangolin results for each of the samples in the analysis.",
       "mime-type": "text/csv",
-      "optional": false,
+      "optional": true,
       "type": "aggregated"
     },
     "nextclade-results": {
@@ -29,7 +29,7 @@
       "title": "Nextclade results",
       "description": "Nextclade results for each of the samples in the analysis.",
       "mime-type": "application/json",
-      "optional": false,
+      "optional": true,
       "type": "aggregated"
     },
     "coverage": {

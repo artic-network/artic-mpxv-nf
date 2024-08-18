@@ -65,8 +65,8 @@ process runArtic {
     """
     run_artic.sh \
         ${meta.alias} ${fastq_file} ${params._min_len} ${params._max_len} \
-        ${basecall_model}:consensus ${params._scheme_name} ${scheme_dir} \
-        ${params._scheme_version} ${task.cpus} ${params._max_softclip_length} ${params.normalise} \
+        ${basecall_model}:consensus  \
+        ${task.cpus} ${params._max_softclip_length} ${params.normalise} \
         > ${meta.alias}.artic.log.txt 2>&1
     bcftools stats ${meta.alias}.pass.named.vcf.gz > ${meta.alias}.pass.named.stats
     """
@@ -364,6 +364,23 @@ process output {
     """
 }
 
+process get_bed_ref {
+    label "artic"
+    cpus 1
+    input:
+        file scheme_directory
+        file scheme_name
+        file scheme_version
+    output:
+        file "scheme.bed", emit: bed
+        file "reference.fasta", emit: ref
+    script:
+    """
+    scheme_dir = "$scheme_directory/$scheme_name/$scheme_version"
+    cp $scheme_dir/$scheme_name.scheme.bed scheme.bed
+    cp $scheme_dir/$scheme_name.reference.fasta reference.fasta
+    """
+}
 
 // workflow module
 workflow pipeline {
@@ -383,6 +400,12 @@ workflow pipeline {
         workflow_params = getParams()
         combined_genotype_summary = Channel.empty()
 
+        // get the bed and reference files
+        get_bed_ref(scheme_dir, scheme_name, scheme_version)
+
+        params._bed = get_bed_ref.bed
+        params._reference = get_bed_ref.ref
+
         if ((samples.getClass() == String) && (samples.startsWith("Error"))){
             samples = channel.of(samples)
             html_doc = report_no_data(
@@ -401,7 +424,7 @@ workflow pipeline {
                     [meta, reads, stats]
                 }
             }
-            artic = runArtic(samples, scheme_dir)
+            artic = runArtic(samples)
             all_depth = combineDepth(artic.depth_stats.collect())
             // collate consensus and variants
             all_consensus = allConsensus(artic.consensus.collect())
@@ -416,41 +439,44 @@ workflow pipeline {
             } else {
                 genotype_summary = Channel.fromPath("$projectDir/data/OPTIONAL_FILE")
             }
-            // nextclade
-            clades = nextclade(
-                all_consensus[0], nextclade_dataset, nextclade_data_tag)
-            // pangolin
-            pangolin(all_consensus[0])
-            software_versions = software_versions.mix(pangolin.out.version,nextclade.out.version)
+            if (params.scheme_name == "SARS-CoV-2"){
+                // nextclade
+                clades = nextclade(
+                    all_consensus[0], nextclade_dataset, nextclade_data_tag)
+                // pangolin
+                pangolin(all_consensus[0])
+                software_versions = software_versions.mix(pangolin.out.version,nextclade.out.version)
 
-            // report
-            html_doc = report(
-                artic.depth_stats.collect(),
-                samples.map { it[2].resolve("per-read-stats.tsv.gz") }.toList(),
-                clades[0].collect(),
-                clades[1].collect(),
-                pangolin.out.report.collect(),
-                genotype_summary.collect(),
-                artic.vcf_stats.collect(),
-                all_consensus[1],
-                software_versions.collect(),
-                workflow_params,
-                all_consensus[0],
-                samples.map { it -> return it[0] }.toList(),
-                )
+                // report
+                html_doc = report(
+                    artic.depth_stats.collect(),
+                    samples.map { it[2].resolve("per-read-stats.tsv.gz") }.toList(),
+                    clades[0].collect(),
+                    clades[1].collect(),
+                    pangolin.out.report.collect(),
+                    genotype_summary.collect(),
+                    artic.vcf_stats.collect(),
+                    all_consensus[1],
+                    software_versions.collect(),
+                    workflow_params,
+                    all_consensus[0],
+                    samples.map { it -> return it[0] }.toList(),
+                    )
 
-            results = all_consensus[0].concat(
-                all_consensus[1],
-                all_variants[0].flatten(),
-                clades[0],
-                artic.primertrimmed_bam.flatMap { it -> [ it[1], it[2] ] },
-                artic.pass_vcf.flatMap { it -> [ it[1], it[2] ] },
-                artic.artic_log,
-                html_doc[0],
-                html_doc[1],
-                combined_genotype_summary,
-                pangolin.out.report,
-                all_depth)
+                results = all_consensus[0].concat(
+                    all_consensus[1],
+                    all_variants[0].flatten(),
+                    clades[0],
+                    artic.primertrimmed_bam.flatMap { it -> [ it[1], it[2] ] },
+                    artic.pass_vcf.flatMap { it -> [ it[1], it[2] ] },
+                    artic.artic_log,
+                    html_doc[0],
+                    html_doc[1],
+                    combined_genotype_summary,
+                    pangolin.out.report,
+                    all_depth)
+                }
+
             }
     emit:
         results
