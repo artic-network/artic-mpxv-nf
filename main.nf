@@ -403,8 +403,8 @@ workflow pipeline {
         // get the bed and reference files
         get_bed_ref(scheme_dir, scheme_name, scheme_version)
 
-        params._bed = get_bed_ref.bed
-        params._reference = get_bed_ref.ref
+        params._bed = get_bed_ref.out.bed
+        params._reference = get_bed_ref.out.ref
 
         if ((samples.getClass() == String) && (samples.startsWith("Error"))){
             samples = channel.of(samples)
