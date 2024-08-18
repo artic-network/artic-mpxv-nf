@@ -34,9 +34,9 @@ process runArtic {
         path "${meta.alias}.artic.log.txt", emit: artic_log
         tuple(
             val(meta.alias),
-            path("${meta.alias}.normalised.vcf.gz"),
-            path("${meta.alias}.normalised.vcf.gz.tbi"),
-            emit: merged_gvcf)
+            path("${meta.alias}.normalised.named.vcf.gz"),
+            path("${meta.alias}.normalised.named.vcf.gz.tbi"),
+            emit: pass_vcf)
         tuple(
             val(meta.alias),
             path("${meta.alias}.primertrimmed.rg.sorted.bam"),
@@ -427,14 +427,7 @@ workflow pipeline {
             all_variants = allVariants(
                 artic.pass_vcf.toList().transpose().toList(), reference)
             // genotype summary
-            if (params.genotype_variants) {
-                genotype_summary = genotypeSummary(
-                    artic.merged_gvcf.join(artic.primertrimmed_bam), ref_variants)
-                combined_genotype_summary = combineGenotypeSummaries(
-                    genotype_summary.collect())
-            } else {
-                genotype_summary = Channel.fromPath("$projectDir/data/OPTIONAL_FILE")
-            }
+            genotype_summary = Channel.fromPath("$projectDir/data/OPTIONAL_FILE")
 
             if (params.scheme_name == "SARS-CoV-2"){
                 // nextclade
