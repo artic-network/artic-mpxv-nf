@@ -483,6 +483,8 @@ workflow pipeline {
                         artic.pass_vcf.flatMap)
                 }
             }
+    emit:
+        results            
 }
 
 
