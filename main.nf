@@ -375,9 +375,9 @@ process get_bed_ref {
         path "reference.fasta", emit: ref
 
     """
-    scheme_dir = "${scheme_dir}/${scheme_name}/${scheme_version}"
-    cp ${scheme_dir}/${scheme_name}.scheme.bed scheme.bed
-    cp ${scheme_dir}/${scheme_name}.reference.fasta reference.fasta
+    scheme_dir="${scheme_dir}/${scheme_name}/${scheme_version}"
+    cp $scheme_dir/${scheme_name}.scheme.bed scheme.bed
+    cp $scheme_dir/${scheme_name}.reference.fasta reference.fasta
     """
 }
 
