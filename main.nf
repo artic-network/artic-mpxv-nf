@@ -34,13 +34,8 @@ process runArtic {
         path "${meta.alias}.artic.log.txt", emit: artic_log
         tuple(
             val(meta.alias),
-            path("${meta.alias}.pass.named.vcf.gz"),
-            path("${meta.alias}.pass.named.vcf.gz.tbi"),
-            emit: pass_vcf)
-        tuple(
-            val(meta.alias),
-            path("${meta.alias}.merged.gvcf.named.vcf.gz"),
-            path("${meta.alias}.merged.gvcf.named.vcf.gz.tbi"),
+            path("${meta.alias}.normalised.vcf.gz"),
+            path("${meta.alias}.normalised.vcf.gz.tbi"),
             emit: merged_gvcf)
         tuple(
             val(meta.alias),

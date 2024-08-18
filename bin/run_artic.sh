@@ -57,10 +57,10 @@ artic minion --normalise ${normalise} --threads ${threads} \
     ${sample_name} \
     || mock_artic
 
-for vcf_set in "pass" "merged.gvcf"; do
-    zcat "${sample_name}.${vcf_set}.vcf.gz" | sed "s/SAMPLE/${sample_name}/" | bgzip > "${sample_name}.${vcf_set}.named.vcf.gz"
-    bcftools index -t "${sample_name}.${vcf_set}.named.vcf.gz"
-done;
+# for vcf_set in "pass" "merged.gvcf"; do
+#     zcat "${sample_name}.${vcf_set}.vcf.gz" | sed "s/SAMPLE/${sample_name}/" | bgzip > "${sample_name}.${vcf_set}.named.vcf.gz"
+#     bcftools index -t "${sample_name}.${vcf_set}.named.vcf.gz"
+# done;
 
 # rename the consensus sequence
 sed -i "s/^>\S*/>${sample_name}/" "${sample_name}.consensus.fasta"
