@@ -351,7 +351,7 @@ process squirrel {
         path "all_consensus.fasta"
     output:
         path "squirrel/all_consensus.aln.fasta", emit: alignment
-        path "squirrel/**", emit: all
+        path "squirrel", emit: all
         path "squirrel.version", emit: version
 
     script:
