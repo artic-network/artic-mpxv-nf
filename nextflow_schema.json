@@ -179,6 +179,16 @@
       "description": "Options related to MPXV",
       "default": "",
       "properties": {
+        "clade": {
+          "type": "string",
+          "title": "Clade",
+          "description": "Specify whether the alignment is primarily for `cladei` or `cladeii`.",
+          "enum": [
+            "cladei",
+            "cladeii"
+          ],
+          "help_text": ""
+        },
         "squirrel_threads": {
           "type": "number",
           "description": "Number of CPU threads to use per squirrel task.",
@@ -186,11 +196,12 @@
           "minimum": 1,
           "default": 4
         },
-        "squirrel_options": {
+        "squirrel_optioßns": {
           "type": "string",
           "description": "Pass options to Squirrel, for example \"--clade cladeii\"."
         }
       },
+      "required": ["clade"],
       "fa_icon": "fas fa-address-card",
       "help_text": ""
     },
