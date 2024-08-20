@@ -343,6 +343,25 @@ process pangolin {
     """
 }
 
+process squirrel {
+    label "squirrel"
+    cpus params.squirrel_threads
+
+    input:
+        path "all_consensus.fasta"
+    output:
+        path "squirrel/all_consensus.aln.fasta", emit: alignment
+        path "squirrel/**", emit: all
+        path "squirrel.version", emit: version
+
+    script:
+    """
+    XDG_CACHE_HOME=$PWD/.cache
+    squirrel --version 2>&1 | sed 's/: /,/' > squirrel.version
+    squirrel "all_consensus.fasta" -o squirrel --seq-qc --outfile all_consensus.aln.fasta --tempdir squirrel_tmp -t ${task.cpus} $params._squirrel_options
+    """
+}
+
 
 // See https://github.com/nextflow-io/nextflow/issues/1636
 // This is the only way to publish files from a workflow whilst
@@ -467,9 +486,14 @@ workflow pipeline {
                     pangolin.out.report,
                     all_depth)
                 } else {
+                    // squirrel
+                    squirrel(all_consensus[0])
+                    software_versions = software_versions.mix(squirrel.out.version)
+
                     results = all_consensus[0].concat(
                         all_consensus[1],
                         all_variants[0].flatten(),
+                        squirrel.out.all.flatten(),
                         artic.primertrimmed_bam.flatMap { it -> [ it[1], it[2] ] },
                         artic.pass_vcf.flatMap { it -> [ it[1], it[2] ] },
                         artic.artic_log)
@@ -617,6 +641,15 @@ workflow {
     } else {
         params._pangolin_options = params.pangolin_options
         params.remove('pangolin_options')
+    }
+
+    // Squirrel options
+    if (params.squirrel_options == null){
+        params.remove('squirrel_options')
+        params._squirrel_options = ''
+    } else {
+        params._squirrel_options = params.squirrel_options
+        params.remove('squirrel_options')
     }
 
 

@@ -1,12 +1,12 @@
 {
   "$schema": "http://json-schema.org/draft-07/schema",
   "$id": "https://raw.githubusercontent.com/./master/nextflow_schema.json",
-  "title": "artic-network/artic-mpxv-nf",
-  "workflow_title": "Artic Network MPXV Analysis",
-  "description": "Run the ARTIC MPXV methodology on multiplexed MinION, GridION, and PromethION data.",
-  "demo_url": "",
-  "aws_demo_url": "",
-  "url": "https://github.com/artic-network/artic-mpxv-nf",
+  "title": "epi2me-labs/wf-artic",
+  "workflow_title": "Artic Network SARS-CoV-2 Analysis",
+  "description": "Run the ARTIC SARS-CoV-2 methodology on multiplexed MinION, GridION, and PromethION data.",
+  "demo_url": "https://ont-exd-int-s3-euwst1-epi2me-labs.s3.amazonaws.com/wf-artic/wf-artic-demo.tar.gz",
+  "aws_demo_url": "https://ont-exd-int-s3-euwst1-epi2me-labs.s3.amazonaws.com/wf-artic/wf-artic-demo/aws.nextflow.config",
+  "url": "https://github.com/epi2me-labs/wf-artic",
   "type": "object",
   "definitions": {
     "input": {
@@ -111,12 +111,37 @@
         }
       }
     },
-    "reporting_options": {
-      "title": "Reporting Options",
+    "sc2_options": {
+      "title": "SARS-CoV-2 Options",
       "type": "object",
-      "description": "Options controlling report outputs",
+      "description": "Options related to SARS-CoV-2",
       "default": "",
       "properties": {
+        "pangolin_threads": {
+          "type": "number",
+          "description": "Number of CPU threads to use per pangolin task.",
+          "help_text": "The total CPU resource used by the workflow is constrained by the executor configuration.",
+          "minimum": 1,
+          "default": 4
+        },
+        "update_data": {
+          "type": "boolean",
+          "default": true,
+          "description": "Update Pangolin and Nextclade data at runtime."
+        },
+        "pangolin_options": {
+          "type": "string",
+          "description": "Pass options to Pangolin, for example \"--analysis-mode fast --min-length 26000\"."
+        },
+        "nextclade_data_tag": {
+          "type": "string",
+          "description": "The tag of the nextclade data packet",
+          "hidden": false
+        },
+        "genotype_variants": {
+          "type": "string",
+          "description": "Report genotyping information for scheme's known variants of interest, optionally provide file path as argument."
+        },
         "report_depth": {
           "type": "integer",
           "default": 100,
@@ -148,6 +173,27 @@
       "fa_icon": "fas fa-address-card",
       "help_text": ""
     },
+    "mpxv_options": {
+      "title": "Monkeypox virus Options",
+      "type": "object",
+      "description": "Options related to MPXV",
+      "default": "",
+      "properties": {
+        "squirrel_threads": {
+          "type": "number",
+          "description": "Number of CPU threads to use per squirrel task.",
+          "help_text": "The total CPU resource used by the workflow is constrained by the executor configuration.",
+          "minimum": 1,
+          "default": 4
+        },
+        "squirrel_options": {
+          "type": "string",
+          "description": "Pass options to Squirrel, for example \"--clade cladeii\"."
+        }
+      },
+      "fa_icon": "fas fa-address-card",
+      "help_text": ""
+    },
     "advanced_options": {
       "title": "Advanced Options",
       "type": "object",
@@ -161,17 +207,6 @@
           "help_text": "The total CPU resource used by the workflow is constrained by the executor configuration.",
           "minimum": 1,
           "default": 4
-        },
-        "pangolin_threads": {
-          "type": "number",
-          "description": "Number of CPU threads to use per pangolin task.",
-          "help_text": "The total CPU resource used by the workflow is constrained by the executor configuration.",
-          "minimum": 1,
-          "default": 4
-        },
-        "genotype_variants": {
-          "type": "string",
-          "description": "Report genotyping information for scheme's known variants of interest, optionally provide file path as argument."
         },
         "list_schemes": {
           "type": "boolean",
@@ -196,20 +231,6 @@
           "type": "integer",
           "title": "Maximum soft clip length",
           "description": "Remove reads with alignments showing large soft clipping"
-        },
-        "update_data": {
-          "type": "boolean",
-          "default": true,
-          "description": "Update Pangolin and Nextclade data at runtime."
-        },
-        "pangolin_options": {
-          "type": "string",
-          "description": "Pass options to Pangolin, for example \"--analysis-mode fast --min-length 26000\"."
-        },
-        "nextclade_data_tag": {
-          "type": "string",
-          "description": "The tag of the nextclade data packet",
-          "hidden": false
         },
         "normalise": {
           "type": "integer",
@@ -307,7 +328,10 @@
       "$ref": "#/definitions/output"
     },
     {
-      "$ref": "#/definitions/reporting_options"
+      "$ref": "#/definitions/sc2_options"
+    },
+    {
+      "$ref": "#/definitions/mpxv_options"
     },
     {
       "$ref": "#/definitions/advanced_options"
@@ -346,6 +370,10 @@
       "hidden": true
     },
     "_pangolin_options": {
+      "type": "string",
+      "hidden": true
+    },
+    "_squirrel_options": {
       "type": "string",
       "hidden": true
     },
