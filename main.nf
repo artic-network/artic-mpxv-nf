@@ -541,6 +541,8 @@ workflow {
           params.remove('min_len')
           if (params.scheme_version.startsWith("Midnight") || params.scheme_version == 'NEB-VarSkip/v1a-long') {
               params._min_len = 150
+          } else if (params.scheme_version.startsWith("INRB")) {
+              params._min_len = 1500
           } else {
               params._min_len = 400
           }
@@ -554,6 +556,8 @@ workflow {
               params._max_len = 1200
           } else if (params.scheme_version == 'NEB-VarSkip/v1a-long') {
               params._max_len = 1800
+          } else if (params.scheme_version.startsWith("INRB")){
+              params._max_len = 3000
           } else {
               params._max_len = 700
           }
