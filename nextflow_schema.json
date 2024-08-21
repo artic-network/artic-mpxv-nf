@@ -196,8 +196,9 @@
           "minimum": 1,
           "default": 4
         },
-        "squirrel_optioßns": {
+        "squirrel_options": {
           "type": "string",
+          "hidden": "true",
           "description": "Pass options to Squirrel, for example \"--clade cladeii\"."
         }
       },
