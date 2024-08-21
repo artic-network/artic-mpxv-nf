@@ -93,12 +93,10 @@
     "mpxv_options": {
       "title": "Monkeypox virus Options",
       "type": "object",
-      "description": "Options related to MPXV",
-      "default": "",
-      "properties": {
-      },
       "fa_icon": "fas fa-address-card",
-      "help_text": ""
+      "description": "Options related to MPXV",
+      "help_text": "Options specific to the MPXV workflow.",
+      "properties": {}
     },
     "advanced_options": {
       "title": "Advanced Options",
@@ -269,10 +267,6 @@
       "hidden": true
     },
     "_max_softclip_length": {
-      "type": "string",
-      "hidden": true
-    },
-    "_pangolin_options": {
       "type": "string",
       "hidden": true
     },
