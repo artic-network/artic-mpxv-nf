@@ -41,7 +41,7 @@
           "type": "string",
           "default": "MPXV",
           "description": "Primer scheme name.",
-          "help_text": "This should be set to `SARS-CoV-2`, or `spike-seq` or your custom scheme name. This affects the choice of scheme versions you can use. The only scheme versions compatible with `spike-seq` are `ONT/V1` and `ONT/V4.1`"
+          "help_text": "This should be set to `MPXV`"
         },
         "scheme_version": {
           "type": "string",
@@ -89,6 +89,16 @@
           "description": "Directory for output of all workflow results."
         }
       }
+    },
+    "mpxv_options": {
+      "title": "Monkeypox virus Options",
+      "type": "object",
+      "description": "Options related to MPXV",
+      "default": "",
+      "properties": {
+      },
+      "fa_icon": "fas fa-address-card",
+      "help_text": ""
     },
     "advanced_options": {
       "title": "Advanced Options",
@@ -222,6 +232,9 @@
     },
     {
       "$ref": "#/definitions/output"
+    },
+    {
+      "$ref": "#/definitions/mpxv_options"
     },
     {
       "$ref": "#/definitions/advanced_options"
