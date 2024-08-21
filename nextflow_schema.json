@@ -45,31 +45,10 @@
         },
         "scheme_version": {
           "type": "string",
-          "default": "INRB/V3",
+          "default": "yale-mpox/v1.0.1",
           "description": "Primer scheme version.",
-          "help_text": "This is the version of the primer scheme to use, more details about primer shemes can be found [here](https://labs.epi2me.io/ont-midnight-scheme-update/).",
-          "enum": [
-            "ARTIC/V1",
-            "ARTIC/V2",
-            "ARTIC/V3",
-            "ARTIC/V4",
-            "ARTIC/V4.1",
-            "ARTIC/V5.3.2",
-            "Midnight-ONT/V1",
-            "Midnight-ONT/V2",
-            "Midnight-ONT/V3",
-            "NEB-VarSkip/v2b",
-            "NEB-VarSkip/v1a-long",
-            "NEB-VarSkip/v2",
-            "NEB-VarSkip/v1a",
-            "Midnight-IDT/V1",
-            "Midnight-IDT/V2",
-            "ONT/V1",
-            "ONT/V4.1",
-            "INRB/V1",
-            "INRB/V2",
-            "INRB/V3"
-          ]
+          "help_text": "Version of the primer scheme to use, `yale-mpox/v1.0.0` and `yale-mpox/v1.0.1` are the same scheme but use separate reference fastas, v1.0.1 uses a clade I reference whereas v1.0.0 uses the clade II reference.",
+          "enum": ["yale-mpox/v1.0.0", "yale-mpox/v1.0.1"]
         },
         "custom_scheme": {
           "type": "string",
