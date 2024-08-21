@@ -237,7 +237,6 @@
       "$ref": "#/definitions/mpxv_options"
     },
     {
-
       "$ref": "#/definitions/advanced_options"
     },
     {
