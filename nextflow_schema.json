@@ -41,7 +41,7 @@
           "type": "string",
           "default": "MPXV",
           "description": "Primer scheme name.",
-          "help_text": "This should be set to `SARS-CoV-2`, or `spike-seq` or your custom scheme name. This affects the choice of scheme versions you can use. The only scheme versions compatible with `spike-seq` are `ONT/V1` and `ONT/V4.1`"
+          "help_text": "This should be set to `MPXV`"
         },
         "scheme_version": {
           "type": "string",
@@ -110,68 +110,6 @@
           "description": "Directory for output of all workflow results."
         }
       }
-    },
-    "sc2_options": {
-      "title": "SARS-CoV-2 Options",
-      "type": "object",
-      "description": "Options related to SARS-CoV-2",
-      "default": "",
-      "properties": {
-        "pangolin_threads": {
-          "type": "number",
-          "description": "Number of CPU threads to use per pangolin task.",
-          "help_text": "The total CPU resource used by the workflow is constrained by the executor configuration.",
-          "minimum": 1,
-          "default": 4
-        },
-        "update_data": {
-          "type": "boolean",
-          "default": true,
-          "description": "Update Pangolin and Nextclade data at runtime."
-        },
-        "pangolin_options": {
-          "type": "string",
-          "description": "Pass options to Pangolin, for example \"--analysis-mode fast --min-length 26000\"."
-        },
-        "nextclade_data_tag": {
-          "type": "string",
-          "description": "The tag of the nextclade data packet",
-          "hidden": false
-        },
-        "genotype_variants": {
-          "type": "string",
-          "description": "Report genotyping information for scheme's known variants of interest, optionally provide file path as argument."
-        },
-        "report_depth": {
-          "type": "integer",
-          "default": 100,
-          "description": "Min. depth for percentage coverage. (e.g. 89% genome covered at > `report_depth`)",
-          "minimum": 0,
-          "maximum": 100
-        },
-        "report_clade": {
-          "type": "boolean",
-          "default": true,
-          "description": "Show results of Nextclade analysis in report."
-        },
-        "report_coverage": {
-          "type": "boolean",
-          "default": true,
-          "description": "Show genome coverage traces in report."
-        },
-        "report_lineage": {
-          "type": "boolean",
-          "default": true,
-          "description": "Show results of Pangolin analysis in report."
-        },
-        "report_variant_summary": {
-          "type": "boolean",
-          "default": true,
-          "description": "Show variant information in report."
-        }
-      },
-      "fa_icon": "fas fa-address-card",
-      "help_text": ""
     },
     "mpxv_options": {
       "title": "Monkeypox virus Options",
@@ -338,9 +276,6 @@
     },
     {
       "$ref": "#/definitions/output"
-    },
-    {
-      "$ref": "#/definitions/sc2_options"
     },
     {
       "$ref": "#/definitions/mpxv_options"
