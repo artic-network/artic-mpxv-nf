@@ -373,8 +373,8 @@ process get_bed_ref {
         path "reference.fasta", emit: ref
 
     """
-    cp ${scheme_name}/${scheme_version}/${scheme_name}.scheme.bed scheme.bed
-    cp ${scheme_name}/${scheme_version}/${scheme_name}.reference.fasta reference.fasta
+    cp ${scheme_name}/${scheme_version}/primer.bed scheme.bed
+    cp ${scheme_name}/${scheme_version}/reference.fasta reference.fasta
     """
 }
 
@@ -539,9 +539,7 @@ workflow {
 
       if (!params.min_len) {
           params.remove('min_len')
-          if (params.scheme_version.startsWith("Midnight") || params.scheme_version == 'NEB-VarSkip/v1a-long') {
-              params._min_len = 150
-          } else if (params.scheme_version.startsWith("INRB")) {
+          if (params.scheme_version.startsWith("yale-mpox")) {
               params._min_len = 1500
           } else {
               params._min_len = 400
@@ -552,11 +550,7 @@ workflow {
       }
       if (!params.max_len) {
           params.remove('max_len')
-          if (params.scheme_version.startsWith("Midnight")) {
-              params._max_len = 1200
-          } else if (params.scheme_version == 'NEB-VarSkip/v1a-long') {
-              params._max_len = 1800
-          } else if (params.scheme_version.startsWith("INRB")){
+          if (params.scheme_version.startsWith("yale-mpox")){
               params._max_len = 3000
           } else {
               params._max_len = 700
@@ -571,10 +565,10 @@ workflow {
       schemes = """./data/${scheme_dir_name}/${params.scheme_name}"""
       scheme_dir = file(projectDir.resolve(schemes), type:'file', checkIfExists:true)
     
-      primers_path = """./data/${scheme_dir_name}/${params.scheme_name}/${params.scheme_version}/${params.scheme_name}.scheme.bed"""
+      primers_path = """./data/${scheme_dir_name}/${params.scheme_name}/${params.scheme_version}/primer.bed"""
       primers = file(projectDir.resolve(primers_path), type:'file', checkIfExists:true)
 
-      reference_path = """./data/${scheme_dir_name}/${params.scheme_name}/${params.scheme_version}/${params.scheme_name}.reference.fasta"""
+      reference_path = """./data/${scheme_dir_name}/${params.scheme_name}/${params.scheme_version}/reference.fasta"""
       reference = file(projectDir.resolve(reference_path),type:'file', checkIfExists:true)
 
       params._scheme_version = params.scheme_version
