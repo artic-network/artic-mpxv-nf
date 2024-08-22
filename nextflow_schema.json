@@ -48,7 +48,7 @@
           "default": "yale-mpox/v1.0.1",
           "description": "Primer scheme version.",
           "help_text": "Version of the primer scheme to use, `yale-mpox/v1.0.0` and `yale-mpox/v1.0.1` are the same scheme but use separate reference fastas, v1.0.1 uses a clade I reference whereas v1.0.0 uses the clade II reference.",
-          "enum": ["yale-mpox/v1.0.0", "yale-mpox/v1.0.1", "itm-mpox/v1.0.0"]
+          "enum": ["yale-mpox/v1.0.0", "yale-mpox/v1.0.1", "erasmus/v1.0.0"]
         },
         "custom_scheme": {
           "type": "string",
