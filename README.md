@@ -1,7 +1,6 @@
-# Artic Network SARS-CoV-2 Analysis
+# Artic Network MPXV Analysis
 
-Run the ARTIC SARS-CoV-2 methodology on multiplexed MinION, GridION, and PromethION data.
-
+Run the ARTIC fieldbioinformatics workflow on multiplexed MPXV ONT data
 
 
 ## Introduction

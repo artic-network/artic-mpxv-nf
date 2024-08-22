@@ -3,7 +3,7 @@
   "$id": "https://raw.githubusercontent.com/./master/nextflow_schema.json",
   "title": "artic-network/artic-mpxv-nf",
   "workflow_title": "Artic Network MPXV Analysis",
-  "description": "Run the ARTIC MPXV methodology on multiplexed MinION, GridION, and PromethION data.",
+  "description": "Run the ARTIC fieldbioinformatics workflow on multiplexed MPXV ONT data",
   "demo_url": "",
   "aws_demo_url": "",
   "url": "https://github.com/artic-network/artic-mpxv-nf",
