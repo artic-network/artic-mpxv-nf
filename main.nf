@@ -372,10 +372,10 @@ workflow {
 
       if (!params.min_len) {
           params.remove('min_len')
-          if (params.scheme_version.startsWith("yale-mpox")) {
+          if (params.scheme_version.startsWith("yale-mpox") || params.scheme_version.startsWith("itm-mpox")) {
               params._min_len = 1500
           } else {
-              params._min_len = 400
+              params._min_len = 1500
           }
       } else {
           params._min_len = params.min_len
@@ -383,10 +383,10 @@ workflow {
       }
       if (!params.max_len) {
           params.remove('max_len')
-          if (params.scheme_version.startsWith("yale-mpox")){
+          if (params.scheme_version.startsWith("yale-mpox") || params.scheme_version.startsWith("itm-mpox")) {
               params._max_len = 3000
           } else {
-              params._max_len = 700
+                params._max_len = 2500
           }
       } else {
           params._max_len = params.max_len
