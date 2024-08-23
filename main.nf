@@ -154,60 +154,6 @@ process getParams {
 }
 
 
-process report {
-    label "artic"
-    cpus 1
-    input:
-        path "depth_stats/*"
-        path "per_read_stats/?.gz"
-        path "nextclade.json"
-        path nextclade_errors
-        path "pangolin.csv"
-        path "genotypes/*"
-        path "vcf_stats/*"
-        path "consensus_status.txt"
-        path "versions/*"
-        path "params.json"
-        path "consensus_fasta"
-        val metadata
-    output:
-        path "wf-artic-report.html"
-        path "*.json"
-    script:
-    // when genotype_variants is false the channel contains a mock file
-    def report_name = "wf-artic-report.html"
-    def genotype = params.genotype_variants ? "--genotypes genotypes/*" : ""
-    def nextclade = params.report_clade as Boolean ? "--nextclade nextclade.json" : ""
-    def pangolin = params.report_lineage as Boolean ? "--pangolin pangolin.csv" : ""
-    def coverage = params.report_coverage as Boolean ? "" : "--hide_coverage"
-    def var_summary = params.report_variant_summary as Boolean ? "" : "--hide_variants"
-
-    def metadata = new JsonBuilder(metadata).toPrettyString()
-    """
-    echo "$pangolin"
-    echo "$nextclade"
-    echo '${metadata}' > metadata.json
-    workflow-glue report \
-        consensus_status.txt $report_name \
-        $pangolin $coverage $var_summary \
-        $nextclade \
-        --nextclade_errors $nextclade_errors \
-        --revision $workflow.revision \
-        --commit $workflow.commitId \
-        --min_len $params._min_len \
-        --max_len $params._max_len \
-        --report_depth $params.report_depth \
-        --depths depth_stats/* \
-        --fastcat_stats per_read_stats/* \
-        --bcftools_stats vcf_stats/* $genotype \
-        --versions versions \
-        --params params.json \
-        --consensus_fasta $consensus_fasta \
-        --metadata metadata.json
-    """
-}
-
-
 process report_no_data {
     label "artic"
     cpus 1
@@ -273,76 +219,6 @@ process allVariants {
 }
 
 
-process nextclade {
-    label "nextclade"
-    cpus 1
-    input:
-        file "consensus.fasta"
-        path nextclade_dataset
-        val nextclade_data_tag
-    output:
-        file "nextclade.json"
-        file "*.errors.csv"
-        path "nextclade.version", emit: version
-
-    script:
-
-      nextclade_dataset = "$nextclade_dataset/$nextclade_data_tag"
-      update_tag = ''
-      // if update_data is true then we will update nextflow on the fly and
-      // use that data instead - regardless of profile - this is the SAFEST
-      if (params.update_data == true) {
-        nextclade_dataset = 'data/sars-cov-2'
-        // if the user specifies a tag and update data then that tag will be pulled
-        // if not then the latest will be pulled
-        if (params.nextclade_data_tag != null) {
-          update_tag = '--tag ' + params.nextclade_data_tag
-        } else {
-          update_tag = '--tag latest'
-        }
-      }
-
-    """
-    if [ "$params.update_data" == "true" ]
-    then
-      nextclade dataset get --name 'sars-cov-2' --output-dir 'data/sars-cov-2' $update_tag
-    fi
-
-    nextclade --version | sed 's/ /,/' > nextclade.version
-    echo "nextclade_data_tag,$nextclade_data_tag" >> nextclade.version
-
-    nextclade run \
-        --input-dataset $nextclade_dataset \
-        --output-json nextclade.json \
-        --jobs 1 \
-        --output-csv consensus.errors.csv \
-        consensus.fasta
-    """
-}
-
-
-process pangolin {
-    label "pangolin"
-    cpus params.pangolin_threads
-    input:
-        path "consensus.fasta"
-    output:
-        path "lineage_report.csv", emit: report
-        path "pangolin.version", emit: version
-    """
-    if [ "$params.update_data" == "true" ]
-    then
-      pangolin --update
-    fi
-    
-    # set cache for snakemake to prevent permission issuses
-    export XDG_CACHE_HOME=\$(pwd -P)
-
-    pangolin --all-versions 2>&1 | sed 's/: /,/' > pangolin.version
-    pangolin --threads ${task.cpus} $params._pangolin_options consensus.fasta
-    """
-}
-
 process squirrel {
     label "squirrel"
     cpus params.squirrel_threads
@@ -407,9 +283,6 @@ workflow pipeline {
         scheme_version
         reference
         primers
-        ref_variants
-        nextclade_dataset
-        nextclade_data_tag
     main:
         software_versions = getVersions()
         // workflow_params = getParams()
@@ -448,56 +321,16 @@ workflow pipeline {
             // genotype summary
             genotype_summary = Channel.fromPath("$projectDir/data/OPTIONAL_FILE")
 
-            if (params.scheme_name == "SARS-CoV-2"){
-                // nextclade
-                clades = nextclade(
-                    all_consensus[0], nextclade_dataset, nextclade_data_tag)
-                // pangolin
-                pangolin(all_consensus[0])
-
-                software_versions = software_versions.mix(pangolin.out.version,nextclade.out.version)
-
-                // report
-                html_doc = report(
-                    artic.depth_stats.collect(),
-                    samples.map { it[2].resolve("per-read-stats.tsv.gz") }.toList(),
-                    clades[0].collect(),
-                    clades[1].collect(),
-                    pangolin.out.report.collect(),
-                    genotype_summary.collect(),
-                    artic.vcf_stats.collect(),
-                    all_consensus[1],
-                    software_versions.collect(),
-                    workflow_params,
-                    all_consensus[0],
-                    samples.map { it -> return it[0] }.toList(),
-                    )
-
-                results = all_consensus[0].concat(
-                    all_consensus[1],
-                    all_variants[0].flatten(),
-                    clades[0],
-                    artic.primertrimmed_bam.flatMap { it -> [ it[1], it[2] ] },
-                    artic.pass_vcf.flatMap { it -> [ it[1], it[2] ] },
-                    artic.artic_log,
-                    html_doc[0],
-                    html_doc[1],
-                    combined_genotype_summary,
-                    pangolin.out.report,
-                    all_depth)
-                } else {
-                    // squirrel
-                    squirrel(all_consensus[0])
-                    software_versions = software_versions.mix(squirrel.out.version)
-
-                    results = all_consensus[0].concat(
-                        all_consensus[1],
-                        all_variants[0].flatten(),
-                        squirrel.out.all.flatten(),
-                        artic.primertrimmed_bam.flatMap { it -> [ it[1], it[2] ] },
-                        artic.pass_vcf.flatMap { it -> [ it[1], it[2] ] },
-                        artic.artic_log)
-                }
+            // squirrel
+            squirrel(all_consensus[0])
+            software_versions = software_versions.mix(squirrel.out.version)
+            
+            results = all_consensus[0].concat(
+                all_consensus[1],
+                all_variants[0].flatten(),
+                artic.primertrimmed_bam.flatMap { it -> [ it[1], it[2] ] },
+                artic.pass_vcf.flatMap { it -> [ it[1], it[2] ] },
+                artic.artic_log)
             }
     emit:
         results            
@@ -563,10 +396,10 @@ workflow {
 
       if (!params.min_len) {
           params.remove('min_len')
-          if (params.scheme_version.startsWith("yale-mpox")) {
-              params._min_len = 1500
+          if (params.scheme_version.startsWith("yale-mpox") || params.scheme_version.startsWith("erasmus")) {
+              params._min_len = 500
           } else {
-              params._min_len = 400
+              params._min_len = 500
           }
       } else {
           params._min_len = params.min_len
@@ -574,10 +407,10 @@ workflow {
       }
       if (!params.max_len) {
           params.remove('max_len')
-          if (params.scheme_version.startsWith("yale-mpox")){
+          if (params.scheme_version.startsWith("yale-mpox") || params.scheme_version.startsWith("erasmus")) {
               params._max_len = 3000
           } else {
-              params._max_len = 700
+                params._max_len = 2500
           }
       } else {
           params._max_len = params.max_len
@@ -631,16 +464,7 @@ workflow {
         params._max_softclip_length = params.max_softclip_length
         params.remove('max_softclip_length')
     }
-
-    // Pangolin options
-    if (params.pangolin_options == null){
-        params.remove('pangolin_options')
-        params._pangolin_options = ''
-    } else {
-        params._pangolin_options = params.pangolin_options
-        params.remove('pangolin_options')
-    }
-
+    
     // Squirrel options
     if (params.squirrel_options == null){
         params.remove('squirrel_options')
@@ -650,33 +474,6 @@ workflow {
         params.remove('squirrel_options')
     }
 
-
-    // For nextclade choose the most recent data from the nextclade_data git submodule, or if nexclade_data_tag is set in params use that
-    // if the user specifies --nextcalde_data_tag and --update_data - that tag will be pulled a fresh and used
-
-    nextclade_data_tag = params.nextclade_data_tag
-    // get the latest data tag    
-    tagged_dirs = file(projectDir.resolve("./data/nextclade/datasets/sarscov2/*"), type: 'dir', maxdepth: 1)
-    def tag_list = []
-    date_parse = new SimpleDateFormat("yyyy-MM-dd'T'HH-mm-ss'Z'");
-    tagged_dirs.each { val -> tag_list << date_parse.parse(val.getBaseName()) }
-    nextclade_data_tag = Collections.max(tag_list).format("yyyy-MM-dd'T'HH-mm-ss'Z'")
-    nextclade_dataset = file(projectDir.resolve("./data/nextclade/datasets/sarscov2"), type: 'dir', checkIfExists:true)
-
-
-
-    // check genotype variants
-    if (params.genotype_variants) {
-        if (params.genotype_variants == true) {
-            ref_variants = file(
-                scheme_directory.resolve("${params.scheme_name}.vcf"),
-                type:'file', checkIfExists:true)
-        } else {
-            ref_variants = file(params.genotype_variants, type:'file', checkIfExists:true)
-        }
-    } else {
-        ref_variants = Channel.fromPath("$projectDir/data/OPTIONAL_FILE")
-    }
 
     // check fastq dataset and run workflow
     samples = fastq_ingress([
@@ -690,7 +487,7 @@ workflow {
     ])
     
     results = pipeline(samples, scheme_dir, params._scheme_name, params._scheme_version, reference,
-        primers, ref_variants, nextclade_dataset, nextclade_data_tag)
+        primers)
         | output
 }
 

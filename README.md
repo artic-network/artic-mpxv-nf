@@ -1,7 +1,6 @@
-# Artic Network SARS-CoV-2 Analysis
+# Artic Network MPXV Analysis
 
-Run the ARTIC SARS-CoV-2 methodology on multiplexed MinION, GridION, and PromethION data.
-
+Run the ARTIC fieldbioinformatics workflow on multiplexed MPXV ONT data
 
 
 ## Introduction
@@ -272,4 +271,18 @@ If your question is not answered here, please report any issues or suggestions o
 See the [EPI2ME website](https://labs.epi2me.io/) for lots of other resources and blog posts.
 
 
+## Problems and Solutions
+
+1. Error during `fastcat` step
+  ```
+  Unable to find image 'ontresearch/wf-common:sha8b5843d549bb210558cbb676fe537a153ce771d6' locally
+  docker: Error response from daemon: Get "https://registry-1.docker.io/v2/ontresearch/wf-common/manifests/sha256:de260cd5ba0131cb3c255ada8dfb3ca8a6f920f707eda4124601f92c95c71dd3": EOF.
+  See 'docker run --help'.
+  ```
+
+  This is an internet problem and this particular container is a very large file - the docker pull request timed out while running. This file only needs to be pulled once. Either just try again, or in a terminal run
+  ```
+  docker pull ontresearch/wf-common:sha8b5843d549bb210558cbb676fe537a153ce771d6
+  ```
+  and resume the run once it has downloaded
 
