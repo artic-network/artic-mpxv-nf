@@ -94,7 +94,6 @@
       "title": "Monkeypox virus Options",
       "type": "object",
       "description": "Options related to MPXV",
-      "default": "",
       "properties": {
         "clade": {
           "type": "string",
@@ -125,9 +124,7 @@
       },
       "required": ["clade"],
       "fa_icon": "fas fa-address-card",
-      "description": "Options related to MPXV",
-      "help_text": "Options specific to the MPXV workflow.",
-      "properties": {}
+      "help_text": "Options specific to the MPXV workflow."
     },
     "advanced_options": {
       "title": "Advanced Options",
