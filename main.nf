@@ -373,9 +373,9 @@ workflow {
       if (!params.min_len) {
           params.remove('min_len')
           if (params.scheme_version.startsWith("yale-mpox") || params.scheme_version.startsWith("erasmus")) {
-              params._min_len = 1500
+              params._min_len = 500
           } else {
-              params._min_len = 1500
+              params._min_len = 500
           }
       } else {
           params._min_len = params.min_len
