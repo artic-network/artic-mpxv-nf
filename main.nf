@@ -411,8 +411,8 @@ workflow {
       //custom scheme path defined
       log.info """${c_purple}Custom primer scheme selected: ${params.custom_scheme} (WARNING: We do not validate your scheme - use at your own risk!)${c_reset}"""
       //check path for required files
-      primers = file("""${params.custom_scheme}/${params.scheme_name}.scheme.bed""", type:'file', checkIfExists:true)
-      reference = file("""${params.custom_scheme}/${params.scheme_name}.reference.fasta""", type:'file', checkIfExists:true)
+      primers = file("""${params.custom_scheme}/primer.bed""", type:'file', checkIfExists:true)
+      reference = file("""${params.custom_scheme}/reference.fasta""", type:'file', checkIfExists:true)
 
       // check to make sure min and max length have been set
       if (!params.max_len || !params.min_len) {
