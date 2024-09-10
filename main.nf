@@ -232,7 +232,7 @@ process squirrel {
 
     script:
     """
-    XDG_CACHE_HOME=\$PWD/.cache
+    export XDG_CACHE_HOME=\$PWD/.cache
     squirrel --version 2>&1 | sed 's/: /,/' > squirrel.version
     squirrel "all_consensus.fasta" -o squirrel --no-mask --seq-qc --outfile all_consensus.aln.fasta --tempdir squirrel_tmp -t ${task.cpus} $params._squirrel_options
     """
