@@ -319,7 +319,7 @@ class NfcoreTemplate {
         return "${colors.dim}--------------------------------------------------------------------------------${colors.reset}"
     }
 
-    // epi2me-labs logo
+    // e̶p̶i̶2̶m̶e̶-̶l̶a̶b̶s̶ ̶l̶o̶g̶o̶ artic logo
     public static String logo(workflow, monochrome_logs) {
         Map colors = NfcoreTemplate.logColours(monochrome_logs)
         String workflow_name = workflow.manifest.name.split("/")[1]
