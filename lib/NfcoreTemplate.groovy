@@ -326,12 +326,13 @@ class NfcoreTemplate {
         String workflow_version = version(workflow)
         String.format(
             """
-                _    ____ _____ ___ ____                 _                      _    
-               / \\  |  _ \\_   _|_ _/ ___|     _ __   ___| |___      _____  _ __| | __
-              / _ \\ | |_) || |  | | |   _____| '_ \\ / _ \\ __\\ \\ /\\ / / _ \\| '__| |/ /
-             / ___ \\|  _ < | |  | | |__|_____| | | |  __/ |_ \\ V  V / (_) | |  |   < 
-            /_/   \\_\\_| \\_\\|_| |___\\____|    |_| |_|\\___|\\__| \\_/\\_/ \\___/|_|  |_|\\_\\
-            ${colors.iblue}||||||||||  ${colors.reset}${colors.bold}${workflow_name} ${workflow_version}${colors.reset}
+            ${colors.iblue}    _    ____ _____ ___ ____${colors.iwhite}            _                      _    ${colors.reset}
+            ${colors.iblue}   / \\  |  _ \\_   _|_ _/ ___|${colors.iwhite}_ __   ___| |___      _____  _ __| | __${colors.reset}
+            ${colors.iblue}  / _ \\ | |_) || |  | | |   ${colors.iwhite}| '_ \\ / _ \\ __\\ \\ /\\ / / _ \\| '__| |/ /${colors.reset}
+            ${colors.iblue} / ___ \\|  _ < | |  | | |___${colors.iwhite}| | | |  __/ |_ \\ V  V / (_) | |  |   < ${colors.reset}
+            ${colors.iblue}/_/   \\_\\_| \\_\\|_| |___\\____${colors.iwhite}|_| |_|\\___|\\__| \\_/\\_/ \\___/|_|  |_|\\_\\${colors.reset}
+
+            ${colors.bold}${workflow_name} ${workflow_version}${colors.reset}
             ${NfcoreTemplate.dashedLine(monochrome_logs)}
             """.stripIndent()
         )
