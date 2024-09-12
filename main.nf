@@ -23,6 +23,9 @@ process checkSampleSheet {
 process runArtic {
     label "artic"
     cpus params.artic_threads
+    errorStrategy 'retry'
+    maxRetries 3
+
     input:
         tuple val(meta), path(fastq_file), path(fastq_stats)
         path bed
