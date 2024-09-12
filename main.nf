@@ -29,9 +29,10 @@ process runArtic {
         path ref
     output:
         path "${meta.alias}.consensus.fasta", emit: consensus
-        // path "${meta.alias}.depth.txt", emit: depth_stats
         path "${meta.alias}.pass.named.stats", emit: vcf_stats
         path "${meta.alias}.artic.log.txt", emit: artic_log
+        path "${meta.alias}.amplicon_depths.tsv", emit: amplicon_depths
+        path "${meta.alias}.sorted.bam*", emit: raw_bam
         tuple(
             val(meta.alias),
             path("${meta.alias}.normalised.named.vcf.gz"),
@@ -268,12 +269,6 @@ workflow pipeline {
         // workflow_params = getParams()
         combined_genotype_summary = Channel.empty()
 
-        // get the bed and reference files
-        get_bed_ref(scheme_dir, scheme_name, scheme_version)
-
-        // params._bed = get_bed_ref.out.bed.toString()
-        // params._reference = get_bed_ref.out.ref.toString()
-
         if ((samples.getClass() == String) && (samples.startsWith("Error"))){
             samples = channel.of(samples)
             html_doc = report_no_data(
@@ -292,7 +287,7 @@ workflow pipeline {
                     [meta, reads, stats]
                 }
             }
-            artic = runArtic(samples, get_bed_ref.out.bed, get_bed_ref.out.ref)
+            artic = runArtic(samples, primers, reference)
             // all_depth = combineDepth(artic.depth_stats.collect())
             // collate consensus and variants
             all_consensus = allConsensus(artic.consensus.collect())
@@ -306,7 +301,11 @@ workflow pipeline {
                 all_variants[0].flatten(),
                 artic.primertrimmed_bam.flatMap { it -> [ it[1], it[2] ] },
                 artic.pass_vcf.flatMap { it -> [ it[1], it[2] ] },
-                artic.artic_log)
+                artic.artic_log,
+                artic.consensus,
+                artic.amplicon_depths,
+                artic.raw_bam
+                )
             }
     emit:
         results            
@@ -372,7 +371,7 @@ workflow {
 
       if (!params.min_len) {
           params.remove('min_len')
-          if (params.scheme_version.startsWith("yale-mpox") || params.scheme_version.startsWith("erasmus")) {
+          if (params.scheme_version.startsWith("yale-mpox") || params.scheme_version.startsWith("rigshospitalet") || params.scheme_version.startsWith("artic-mpox") || params.scheme_version.startsWith("bccdc-mpox")) {
               params._min_len = 500
           } else {
               params._min_len = 500
@@ -383,7 +382,7 @@ workflow {
       }
       if (!params.max_len) {
           params.remove('max_len')
-          if (params.scheme_version.startsWith("yale-mpox") || params.scheme_version.startsWith("erasmus")) {
+            if (params.scheme_version.startsWith("yale-mpox") || params.scheme_version.startsWith("rigshospitalet") || params.scheme_version.startsWith("artic-mpox") || params.scheme_version.startsWith("bccdc-mpox")) {
               params._max_len = 3000
           } else {
                 params._max_len = 2500

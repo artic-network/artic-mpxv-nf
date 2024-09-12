@@ -45,10 +45,18 @@
         },
         "scheme_version": {
           "type": "string",
-          "default": "yale-mpox/v1.0.1",
+          "default": "yale-mpox/v1.0.0-cladeI",
           "description": "Primer scheme version.",
-          "help_text": "Version of the primer scheme to use, `yale-mpox/v1.0.0` and `yale-mpox/v1.0.1` are the same scheme but use separate reference fastas, v1.0.1 uses a clade I reference whereas v1.0.0 uses the clade II reference.",
-          "enum": ["yale-mpox/v1.0.0", "yale-mpox/v1.0.1", "erasmus/v1.0.0"]
+          "help_text": "Version of the primer scheme to use, `yale-mpox/v1.0.0-cladeI` and `yale-mpox/v1.0.0-cladeII` are the same scheme but use separate reference fastas.",
+          "enum": [
+            "yale-mpox/v1.0.0-cladeI",
+            "yale-mpox/v1.0.0-cladeII",
+            "rigshospitalet/v1.0.0",
+            "artic-mpox/v1.1.1-cladeI",
+            "artic-mpox/v1.1.1-cladeII",
+            "bccdc-mpox/v2.3.0-cladeI",
+            "bccdc-mpox/v2.3.0-cladeII"
+          ]
         },
         "custom_scheme": {
           "type": "string",
