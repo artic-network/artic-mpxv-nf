@@ -67,7 +67,7 @@ process runArtic {
     run_artic.sh \
         ${meta.alias} ${fastq_file} ${params._min_len} ${params._max_len} \
         ${basecall_model}:consensus  ${bed} ${ref} \
-        ${task.cpus} ${params._max_softclip_length} ${params.normalise} \
+        ${task.cpus} ${params._max_softclip_length} ${params.normalise} ${params.min_reads} \
         > ${meta.alias}.artic.log.txt 2>&1
     bcftools stats ${meta.alias}.normalised.named.vcf.gz > ${meta.alias}.pass.named.stats
     """

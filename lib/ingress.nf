@@ -575,15 +575,6 @@ process fastcat {
         # only print basecall model if present
         NR>1 && \$ix["basecaller"] != "" {print \$ix["basecaller"]}
     ' fastcat_stats/per-file-basecallers.tsv | sort | uniq > fastcat_stats/basecallers
-
-    # Get the number of reads from fastcat_stats/n_seqs
-    n_reads=\$(cat fastcat_stats/n_seqs)
-
-    if [ "\$n_reads" -lt ${params.min_reads} ]; then
-        echo "Sample has less than ${params.min_reads} reads, skipping."
-        exit 2
-    fi
-
     """
 }
 

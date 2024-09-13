@@ -14,6 +14,7 @@ reference=$7
 threads=$8
 max_softclip_length=${9}
 normalise=${10}
+min_reads=${11}
 
 # if [[ "$scheme_version" == "None" ]];
 # then
@@ -40,6 +41,15 @@ if [[ "${fastq_file}" != "${sample_name}.fastq.gz" ]]; then
     echo "Moving input: '${fastq_file}' to '${sample_name}/${sample_name}.fastq.gz'"
     mkdir ${sample_name}
     mv ${fastq_file} ${sample_name}/${sample_name}.fastq.gz
+fi
+
+# Get the number of reads from fastcat_stats/n_seqs and mock the results if there are not enough reads for artic to run
+n_reads=\$(cat fastcat_stats/n_seqs)
+
+if [ $n_reads -lt $min_reads ]; then
+    echo "Not enough reads: $n_reads < $min_reads"
+    mock_artic
+    exit 0
 fi
 
 artic guppyplex --skip-quality-check \
