@@ -518,7 +518,6 @@ process fastcat {
     label "wf_common"
     cpus 4
     memory "2 GB"
-    errorStrategy { task.exitStatus == 2 ? 'ignore' : 'finish' }
     input:
         tuple val(meta), path(input_src, stageAs: "input_src")
         val fcargs

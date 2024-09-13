@@ -34,8 +34,8 @@ process runArtic {
         path "${meta.alias}.consensus.fasta", emit: consensus
         path "${meta.alias}.pass.named.stats", emit: vcf_stats
         path "${meta.alias}.artic.log.txt", emit: artic_log
-        path "${meta.alias}.amplicon_depths.tsv", emit: amplicon_depths
-        path "${meta.alias}.sorted.bam*", emit: raw_bam
+        path "${meta.alias}.amplicon_depths.tsv", emit: amplicon_depths, optional: true
+        path "${meta.alias}.sorted.bam*", emit: raw_bam, optional: true
         tuple(
             val(meta.alias),
             path("${meta.alias}.normalised.named.vcf.gz"),
@@ -45,12 +45,12 @@ process runArtic {
             val(meta.alias),
             path("${meta.alias}.primertrimmed.rg.sorted.bam"),
             path("${meta.alias}.primertrimmed.rg.sorted.bam.bai"),
-            emit: primertrimmed_bam)
+            emit: primertrimmed_bam, optional: true)
         tuple(
             val(meta.alias),
             path("${meta.alias}.trimmed.rg.sorted.bam"),
             path("${meta.alias}.trimmed.rg.sorted.bam.bai"),
-            emit: trimmed_bam)
+            emit: trimmed_bam, optional: true)
     script:
     // we use `params.override_basecaller_cfg` if present; otherwise use
     // `meta.basecall_models[0]` (there should only be one value in the list because

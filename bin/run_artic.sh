@@ -31,7 +31,7 @@ function mock_artic {
 #CHROM${TAB}POS${TAB}ID${TAB}REF${TAB}ALT${TAB}QUAL${TAB}FILTER${TAB}INFO${TAB}FORMAT${TAB}SAMPLE
 EOF
     bgzip > "${sample_name}.normalised.vcf.gz"
-    cp "${sample_name}.pass.vcf.gz" "${sample_name}.merged.gvcf.vcf.gz"
+    cp "${sample_name}.normalised.vcf.gz" "${sample_name}.merged.gvcf.vcf.gz"
     # This is picked up later in process allConsensus
     echo -e ">${sample_name} Artic-Fail\nN" > "${sample_name}.consensus.fasta"
 }
@@ -44,28 +44,27 @@ if [[ "${fastq_file}" != "${sample_name}.fastq.gz" ]]; then
 fi
 
 # Get the number of reads from fastcat_stats/n_seqs and mock the results if there are not enough reads for artic to run
-n_reads=\$(cat fastcat_stats/n_seqs)
+n_reads=$(cat fastcat_stats/n_seqs)
 
-if [ $n_reads -lt $min_reads ]; then
+if [ "$n_reads" -lt "$min_reads" ]; then
     echo "Not enough reads: $n_reads < $min_reads"
     mock_artic
-    exit 0
+else
+    artic guppyplex --skip-quality-check \
+        --min-length ${min_len} --max-length ${max_len} \
+        --directory ${sample_name} --prefix ${sample_name} \
+        && echo " - artic guppyplex finished"
+    # the output of the above will be...
+    READFILE="${sample_name}_${sample_name}.fastq"
+
+    artic minion --normalise ${normalise} --threads ${threads} \
+        --read-file ${READFILE} \
+        --model ${medaka_model} \
+        --bed ${bedfile} \
+        --ref ${reference} \
+        ${sample_name} \
+        || mock_artic
 fi
-
-artic guppyplex --skip-quality-check \
-    --min-length ${min_len} --max-length ${max_len} \
-    --directory ${sample_name} --prefix ${sample_name} \
-    && echo " - artic guppyplex finished"
-# the output of the above will be...
-READFILE="${sample_name}_${sample_name}.fastq"
-
-artic minion --normalise ${normalise} --threads ${threads} \
-    --read-file ${READFILE} \
-    --model ${medaka_model} \
-    --bed ${bedfile} \
-    --ref ${reference} \
-    ${sample_name} \
-    || mock_artic
 
 zcat "${sample_name}.normalised.vcf.gz" | sed "s/SAMPLE/${sample_name}/" | bgzip > "${sample_name}.normalised.named.vcf.gz"
 bcftools index -t "${sample_name}.normalised.named.vcf.gz"

@@ -326,11 +326,11 @@ class NfcoreTemplate {
         String workflow_version = version(workflow)
         String.format(
             """
-            ${colors.iblue}    _    ____ _____ ___ ____${colors.iwhite}            _                      _    ${colors.reset}
-            ${colors.iblue}   / \\  |  _ \\_   _|_ _/ ___|${colors.iwhite}_ __   ___| |___      _____  _ __| | __${colors.reset}
-            ${colors.iblue}  / _ \\ | |_) || |  | | |   ${colors.iwhite}| '_ \\ / _ \\ __\\ \\ /\\ / / _ \\| '__| |/ /${colors.reset}
-            ${colors.iblue} / ___ \\|  _ < | |  | | |___${colors.iwhite}| | | |  __/ |_ \\ V  V / (_) | |  |   < ${colors.reset}
-            ${colors.iblue}/_/   \\_\\_| \\_\\|_| |___\\____${colors.iwhite}|_| |_|\\___|\\__| \\_/\\_/ \\___/|_|  |_|\\_\\${colors.reset}
+            ${colors.iblue}    _    ____ _____ ___ ____${colors.reset}${colors.dim}            _                      _    
+            ${colors.iblue}   / \\  |  _ \\_   _|_ _/ ___|${colors.reset}${colors.dim}_ __   ___| |___      _____  _ __| | __
+            ${colors.iblue}  / _ \\ | |_) || |  | | |   ${colors.reset}${colors.dim}| '_ \\ / _ \\ __\\ \\ /\\ / / _ \\| '__| |/ /
+            ${colors.iblue} / ___ \\|  _ < | |  | | |___${colors.reset}${colors.dim}| | | |  __/ |_ \\ V  V / (_) | |  |   < 
+            ${colors.iblue}/_/   \\_\\_| \\_\\|_| |___\\____${colors.reset}${colors.dim}|_| |_|\\___|\\__| \\_/\\_/ \\___/|_|  |_|\\_\\
 
             ${colors.bold}${workflow_name} ${workflow_version}${colors.reset}
             ${NfcoreTemplate.dashedLine(monochrome_logs)}
