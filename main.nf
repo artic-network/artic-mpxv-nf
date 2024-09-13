@@ -457,7 +457,8 @@ workflow {
     
     results = pipeline(samples, scheme_dir, params._scheme_name, params._scheme_version, reference,
         primers)
-        | output
+    
+    output(results.toList())
 }
 
 workflow.onComplete {
