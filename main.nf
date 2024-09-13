@@ -307,7 +307,7 @@ workflow pipeline {
                 artic.artic_log,
                 artic.consensus,
                 artic.amplicon_depths,
-                artic.raw_bam.flatMap { it -> [ it[1], it[2] ] },
+                artic.raw_bam.flatMap { it -> [ it[0], it[1] ] },
                 )
             }
     emit:
