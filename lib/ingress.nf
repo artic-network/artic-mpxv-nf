@@ -518,6 +518,7 @@ process fastcat {
     label "wf_common"
     cpus 4
     memory "2 GB"
+    errorStrategy { task.exitStatus == 2 ? 'ignore' : 'finish' }
     input:
         tuple val(meta), path(input_src, stageAs: "input_src")
         val fcargs
@@ -560,6 +561,7 @@ process fastcat {
     # get n_seqs from per-file stats - need to sum them up
     awk 'NR==1{for (i=1; i<=NF; i++) {ix[\$i] = i}} NR>1 {c+=\$ix["n_seqs"]} END{print c}' \
         fastcat_stats/per-file-stats.tsv > fastcat_stats/n_seqs
+
     # get unique run IDs (we add `-F '\\t'` as `awk` uses any stretch of whitespace
     # as field delimiter per default and thus ignores empty columns)
     awk -F '\\t' '
@@ -573,6 +575,15 @@ process fastcat {
         # only print basecall model if present
         NR>1 && \$ix["basecaller"] != "" {print \$ix["basecaller"]}
     ' fastcat_stats/per-file-basecallers.tsv | sort | uniq > fastcat_stats/basecallers
+
+    # Get the number of reads from fastcat_stats/n_seqs
+    n_reads=\$(cat fastcat_stats/n_seqs)
+
+    if [ "\$n_reads" -lt ${params.min_reads} ]; then
+        echo "Sample has less than ${params.min_reads} reads, skipping."
+        exit 2
+    fi
+
     """
 }
 

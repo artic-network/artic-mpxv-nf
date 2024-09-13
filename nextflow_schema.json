@@ -125,6 +125,12 @@
           "default": false,
           "description": "List primer schemes and exit without running analysis."
         },
+        "min_reads": {
+          "type": "number",
+          "title": "Minimum number of reads",
+          "description": "Ignore samples with fewer reads than this value.",
+          "default": 1000
+        },
         "min_len": {
           "type": "number",
           "title": "Minimum read length",
