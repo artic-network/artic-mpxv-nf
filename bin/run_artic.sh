@@ -29,7 +29,7 @@ function mock_artic {
 ##source=Longshot v0.4.0
 #CHROM${TAB}POS${TAB}ID${TAB}REF${TAB}ALT${TAB}QUAL${TAB}FILTER${TAB}INFO${TAB}FORMAT${TAB}SAMPLE
 EOF
-    bgzip > "${sample_name}.pass.vcf.gz"
+    bgzip > "${sample_name}.normalised.vcf.gz"
     cp "${sample_name}.pass.vcf.gz" "${sample_name}.merged.gvcf.vcf.gz"
     # This is picked up later in process allConsensus
     echo -e ">${sample_name} Artic-Fail\nN" > "${sample_name}.consensus.fasta"
