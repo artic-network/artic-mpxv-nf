@@ -54,7 +54,7 @@
           "type": "string",
           "format": "path",
           "description": "Path to a custom scheme.",
-          "help_text": "If you have a custom primer scheme you can enter the details here. This must be the full path to the directory containing your appropriately named scheme bed and fasta files; <SCHEME_NAME>.bed and <SCHEME_NAME>.fasta. More details [here](https://labs.epi2me.io/ont-midnight-scheme-update/)."
+          "help_text": "If you have a custom primer scheme you can enter the details here. This must be the full path to the directory containing your appropriately named scheme bed and fasta files; primer.bed and reference.fasta. More details [here](https://labs.epi2me.io/ont-midnight-scheme-update/)."
         }
       }
     },

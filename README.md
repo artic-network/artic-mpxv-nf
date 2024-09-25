@@ -5,18 +5,32 @@ Run the ARTIC fieldbioinformatics workflow on multiplexed MPXV ONT data
 
 ## Introduction
 
-The wf-artic workflow implements a slightly modified ARTIC FieldBioinformatics
-workflow for the purpose of preparing consensus sequences from SARS-CoV-2
+The artic-mpxv-nf workflow implements an ARTIC FieldBioinformatics
+workflow for the purpose of preparing consensus sequences from MPXV
 genomes that have been DNA sequenced using a pooled tiling amplicon strategy.
 
 The workflow consumes a folder containing demultiplexed sequence reads as
-prepared by either MinKNOW or Guppy. The workflow needs to know the primer
+prepared by either MinKNOW, Guppy, or Dorado. The workflow needs to know the primer
 scheme that has been used during genome amplification and library preparation
-e.g. `ARTIC/V3` or `ONT_Midnight/V1`. Other parameters can be specified too e.g.
+e.g. `yale-mpox/v1.0.1` or `erasmus/v1.0.0`. Other parameters can be specified too e.g.
 assign sample names to the barcodes or to adjust the length distribution of
 acceptable amplicon sequences.
 
 
+# Credits / Acknowledgements
+
+This pipeline only works due to the ongoing efforts of many people performing the often thankless
+job of developing and maintaining bioinformatics software, including but not limited to:
+* Minimap2 - Heng Li et al, citation: `Li, H. (2018). Minimap2: pairwise alignment for nucleotide sequences. Bioinformatics, 34:3094-3100. doi:10.1093/bioinformatics/bty191`
+* Samtools - Heng Li et al, citation: `Petr Danecek, James K Bonfield, Jennifer Liddle, John Marshall, Valeriu Ohan, Martin O Pollard, Andrew Whitwham, Thomas Keane, Shane A McCarthy, Robert M Davies, Heng Li. GigaScience, Volume 10, Issue 2, February 2021, giab008, https://doi.org/10.1093/gigascience/giab008`
+* Bcftools - Heng Li et al, citation: `Petr Danecek, James K Bonfield, Jennifer Liddle, John Marshall, Valeriu Ohan, Martin O Pollard, Andrew Whitwham, Thomas Keane, Shane A McCarthy, Robert M Davies, Heng Li. GigaScience, Volume 10, Issue 2, February 2021, giab008, https://doi.org/10.1093/gigascience/giab008`
+* Bwa - Heng Li, et al, citation: `Li H. (2013) Aligning sequence reads, clone sequences and assembly contigs with BWA-MEM. arXiv:1303.3997v2 [q-bio.GN]. (if you use the BWA-MEM algorithm or the fastmap command, or want to cite the whole BWA package)`
+* Muscle - Robert Edgar, et al, citation: `Edgar RC., Muscle5: High-accuracy alignment ensembles enable unbiased assessments of sequence homology and phylogeny. Nature Communications 13.1 (2022): 6968.`
+* Longshot - Peter Edge et al, citation: `Edge, P. and Bansal, V., 2019. Longshot enables accurate variant calling in diploid genomes from single-molecule long read sequencing. Nature communications, 10(1), pp.1-10.`
+* cyvcf2 - Brent Pederson et al, citation: `Brent S Pedersen, Aaron R Quinlan, cyvcf2: fast, flexible variant analysis with Python, Bioinformatics, Volume 33, Issue 12, June 2017, Pages 1867–1869, https://doi.org/10.1093/bioinformatics/btx057`
+* Pysam - Anreas Heger et al, `https://github.com/pysam-developers/pysam`
+* Clair3 - Zhenxian Zheng et al, citation: `Zheng, Z., Li, S., Su, J. et al. Symphonizing pileup and full-alignment for deep learning-based long-read variant calling. Nat Comput Sci 2, 797–803 (2022). https://doi.org/10.1038/s43588-022-00387-x`
+* Medaka - Oxford Nanopore Technologies, Chris Wright et al, `https://github.com/nanoporetech/medaka`
 
 
 ## Compute requirements
