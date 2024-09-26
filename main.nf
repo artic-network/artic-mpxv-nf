@@ -332,6 +332,8 @@ workflow pipeline {
                 artic.consensus,
                 artic.amplicon_depths,
                 artic.raw_bam.flatMap { it -> [ it[0], it[1] ] },
+                squirrel.out.alignment,
+                squirrel.out.all.flatMap { it -> [ it ] },
                 )
             }
     emit:
@@ -468,7 +470,7 @@ workflow {
     }
     
     // Squirrel options
-    if (params.squirrel_options == null){
+    if (params.squirrel_options == false){
         params.remove('squirrel_options')
         params._squirrel_options = ''
     } else {
