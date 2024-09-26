@@ -98,13 +98,41 @@
         }
       }
     },
-    "mpxv_options": {
-      "title": "Monkeypox virus Options",
+    "squirrel_options": {
+      "title": "Squirrel Options",
       "type": "object",
-      "fa_icon": "fas fa-address-card",
       "description": "Options related to MPXV",
-      "help_text": "Options specific to the MPXV workflow.",
-      "properties": {}
+      "properties": {
+        "clade": {
+          "type": "string",
+          "title": "Clade",
+          "description": "Specify whether the alignment is primarily for `cladei` or `cladeii`.",
+          "enum": [
+            "cladei", 
+            "cladeia", 
+            "cladeib", 
+            "cladeii", 
+            "cladeiia", 
+            "cladeiib"
+          ],
+          "help_text": ""
+        },
+        "squirrel_threads": {
+          "type": "number",
+          "description": "Number of CPU threads to use per squirrel task.",
+          "help_text": "The total CPU resource used by the workflow is constrained by the executor configuration.",
+          "minimum": 1,
+          "default": 4
+        },
+        "squirrel_options": {
+          "type": "string",
+          "hidden": "true",
+          "description": "Pass options to Squirrel, for example \"--clade cladeii\"."
+        }
+      },
+      "required": ["clade"],
+      "fa_icon": "fas fa-address-card",
+      "help_text": "Options specific to the MPXV workflow."
     },
     "advanced_options": {
       "title": "Advanced Options",
@@ -246,7 +274,7 @@
       "$ref": "#/definitions/output"
     },
     {
-      "$ref": "#/definitions/mpxv_options"
+      "$ref": "#/definitions/squirrel_options"
     },
     {
       "$ref": "#/definitions/advanced_options"
