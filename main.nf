@@ -320,21 +320,35 @@ workflow pipeline {
             genotype_summary = Channel.fromPath("$projectDir/data/OPTIONAL_FILE")
 
             // squirrel
-            squirrel(all_consensus[0])
-            software_versions = software_versions.mix(squirrel.out.version)
-            
-            results = all_consensus[0].concat(
-                all_consensus[1],
-                all_variants[0].flatten(),
-                artic.primertrimmed_bam.flatMap { it -> [ it[1], it[2] ] },
-                artic.pass_vcf.flatMap { it -> [ it[1], it[2] ] },
-                artic.artic_log,
-                artic.consensus,
-                artic.amplicon_depths,
-                artic.raw_bam.flatMap { it -> [ it[0], it[1] ] },
-                squirrel.out.alignment,
-                squirrel.out.all.flatMap { it -> [ it ] },
+            if (!params.skip_squirrel) {
+                squirrel(all_consensus[0])
+                software_versions = software_versions.mix(squirrel.out.version)
+                
+                results = all_consensus[0].concat(
+                    all_consensus[1],
+                    all_variants[0].flatten(),
+                    artic.primertrimmed_bam.flatMap { it -> [ it[1], it[2] ] },
+                    artic.pass_vcf.flatMap { it -> [ it[1], it[2] ] },
+                    artic.artic_log,
+                    artic.consensus,
+                    artic.amplicon_depths,
+                    artic.raw_bam.flatMap { it -> [ it[0], it[1] ] },
+                    squirrel.out.alignment,
+                    squirrel.out.all.flatMap { it -> [ it ] },
+                    )
+            } else {
+                results = all_consensus[0].concat(
+                    all_consensus[1],
+                    all_variants[0].flatten(),
+                    artic.primertrimmed_bam.flatMap { it -> [ it[1], it[2] ] },
+                    artic.pass_vcf.flatMap { it -> [ it[1], it[2] ] },
+                    artic.artic_log,
+                    artic.consensus,
+                    artic.amplicon_depths,
+                    artic.raw_bam.flatMap { it -> [ it[0], it[1] ] }
                 )
+            }
+            
             }
     emit:
         results            
