@@ -319,19 +319,20 @@ class NfcoreTemplate {
         return "${colors.dim}--------------------------------------------------------------------------------${colors.reset}"
     }
 
-    // epi2me-labs logo
+    // e̶p̶i̶2̶m̶e̶-̶l̶a̶b̶s̶ ̶l̶o̶g̶o̶ artic logo
     public static String logo(workflow, monochrome_logs) {
         Map colors = NfcoreTemplate.logColours(monochrome_logs)
         String workflow_name = workflow.manifest.name.split("/")[1]
         String workflow_version = version(workflow)
         String.format(
             """
-            ${colors.igreen}||||||||||   ${colors.reset}${colors.dim}_____ ____ ___ ____  __  __ _____      _       _
-            ${colors.igreen}||||||||||  ${colors.reset}${colors.dim}| ____|  _ \\_ _|___ \\|  \\/  | ____|    | | __ _| |__  ___
-            ${colors.yellow}|||||       ${colors.reset}${colors.dim}|  _| | |_) | |  __) | |\\/| |  _| _____| |/ _` | '_ \\/ __|
-            ${colors.yellow}|||||       ${colors.reset}${colors.dim}| |___|  __/| | / __/| |  | | |__|_____| | (_| | |_) \\__ \\
-            ${colors.iblue}||||||||||  ${colors.reset}${colors.dim}|_____|_|  |___|_____|_|  |_|_____|    |_|\\__,_|_.__/|___/
-            ${colors.iblue}||||||||||  ${colors.reset}${colors.bold}${workflow_name} ${workflow_version}${colors.reset}
+            ${colors.iblue}    _    ____ _____ ___ ____${colors.reset}${colors.dim}            _                      _    
+            ${colors.iblue}   / \\  |  _ \\_   _|_ _/ ___|${colors.reset}${colors.dim}_ __   ___| |___      _____  _ __| | __
+            ${colors.iblue}  / _ \\ | |_) || |  | | |   ${colors.reset}${colors.dim}| '_ \\ / _ \\ __\\ \\ /\\ / / _ \\| '__| |/ /
+            ${colors.iblue} / ___ \\|  _ < | |  | | |___${colors.reset}${colors.dim}| | | |  __/ |_ \\ V  V / (_) | |  |   < 
+            ${colors.iblue}/_/   \\_\\_| \\_\\|_| |___\\____${colors.reset}${colors.dim}|_| |_|\\___|\\__| \\_/\\_/ \\___/|_|  |_|\\_\\
+
+            ${colors.bold}${workflow_name} ${workflow_version}${colors.reset}
             ${NfcoreTemplate.dashedLine(monochrome_logs)}
             """.stripIndent()
         )

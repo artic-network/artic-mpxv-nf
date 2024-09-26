@@ -560,6 +560,7 @@ process fastcat {
     # get n_seqs from per-file stats - need to sum them up
     awk 'NR==1{for (i=1; i<=NF; i++) {ix[\$i] = i}} NR>1 {c+=\$ix["n_seqs"]} END{print c}' \
         fastcat_stats/per-file-stats.tsv > fastcat_stats/n_seqs
+
     # get unique run IDs (we add `-F '\\t'` as `awk` uses any stretch of whitespace
     # as field delimiter per default and thus ignores empty columns)
     awk -F '\\t' '
