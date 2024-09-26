@@ -106,13 +106,13 @@
         "clade": {
           "type": "string",
           "title": "Clade",
-          "description": "Specify whether the alignment is primarily for `cladei` or `cladeii`.",
+          "description": "Specify whether the sequencing run is primarily `cladeI` or `cladeII`.",
           "enum": [
-            "cladei", 
-            "cladeia", 
-            "cladeib", 
-            "cladeii", 
-            "cladeiia", 
+            "cladei",
+            "cladeia",
+            "cladeib",
+            "cladeii",
+            "cladeiia",
             "cladeiib"
           ],
           "help_text": ""
