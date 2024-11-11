@@ -47,10 +47,14 @@
         },
         "scheme_version": {
           "type": "string",
-          "default": "yale-mpox/v1.0.0-cladeI",
+          "default": "artic-inrb-mpox/v1.0.0-cladeia",
           "description": "Primer scheme version.",
           "help_text": "Version of the primer scheme to use, `yale-mpox/v1.0.0-cladeI` and `yale-mpox/v1.0.0-cladeII` are the same scheme but use separate reference fastas.",
           "enum": [
+            "artic-inrb-mpox/v1.0.0-cladeia",
+            "artic-inrb-mpox/v1.0.0-cladeib",
+            "artic-inrb-mpox/v1.0.0-cladeiia",
+            "artic-inrb-mpox/v1.0.0-cladeiib",
             "yale-mpox/v1.0.0-cladeI",
             "yale-mpox/v1.0.0-cladeII",
             "rigshospitalet/v1.0.0",
