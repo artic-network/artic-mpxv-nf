@@ -14,6 +14,8 @@ process checkSampleSheet {
         file "sample_sheet.txt"
     output:
         file "samples.txt"
+    
+    shell:
     """
     workflow-glue check_sample_sheet sample_sheet.txt samples.txt
     """
@@ -23,7 +25,7 @@ process checkSampleSheet {
 process runArtic {
     label "artic"
     cpus params.artic_threads
-    errorStrategy 'retry'
+    errorStrategy { task.exitStatus in ((130..145) + 104) ? "retry" : "ignore" }
     maxRetries 3
 
     input:
@@ -32,15 +34,14 @@ process runArtic {
         path ref
     output:
         path "${meta.alias}.consensus.fasta", emit: consensus
-        path "${meta.alias}.pass.named.stats", emit: vcf_stats
-        path "${meta.alias}.artic.log.txt", emit: artic_log
+        path "${meta.alias}.minion.log.txt", emit: artic_log
         path "${meta.alias}.amplicon_depths.tsv", emit: amplicon_depths, optional: true
         path "${meta.alias}.sorted.bam*", emit: raw_bam, optional: true
         tuple(
             val(meta.alias),
             path("${meta.alias}.normalised.named.vcf.gz"),
             path("${meta.alias}.normalised.named.vcf.gz.tbi"),
-            emit: pass_vcf)
+            emit: pass_vcf, optional: true)
         tuple(
             val(meta.alias),
             path("${meta.alias}.primertrimmed.rg.sorted.bam"),
@@ -56,20 +57,32 @@ process runArtic {
     // `meta.basecall_models[0]` (there should only be one value in the list because
     // we're running ingress with `allow_multiple_basecall_models: false`; note that
     // `[0]` on an empty list returns `null`)
-    String basecall_model = params.override_basecaller_cfg ?: meta.basecall_models[0]
-    if (!basecall_model) {
-        error "Found no basecall model information in the input data for " + \
-            "sample '$meta.alias'. Please provide it with the " + \
-            "`--override_basecaller_cfg` parameter."
+    if (!meta.basecall_models[0]) {
+        println "Found no basecall model information in the input data for " + \
+            "sample '$meta.alias'. If the process later fails, please provide the appropriate clair3 model with the " + \
+            "`--override_model` parameter."
+    }
+
+    if (params.override_model) {
+        model_str = "--model ${params.override_model}"
+    } else {
+        model_str = ""
     }
 
     """
-    run_artic.sh \
-        ${meta.alias} ${fastq_file} ${params._min_len} ${params._max_len} \
-        ${basecall_model}:consensus  ${bed} ${ref} \
-        ${task.cpus} ${params._max_softclip_length} ${params.normalise} ${params.min_reads} \
-        > ${meta.alias}.artic.log.txt 2>&1
-    bcftools stats ${meta.alias}.normalised.named.vcf.gz > ${meta.alias}.pass.named.stats
+    artic guppyplex --skip-quality-check \
+        --min-length ${params._min_len} --max-length ${params._max_len} \
+        --directory . --prefix ${meta.alias}
+
+    artic minion --normalise ${params.normalise} --threads ${task.cpus} \
+        --read-file ${meta.alias}_..fastq \
+        --bed ${bed} \
+        --ref ${ref} \
+        ${model_str} \
+        ${meta.alias}
+
+    zcat ${meta.alias}.normalised.vcf.gz | sed 's/SAMPLE/${meta.alias}/' | bgzip > ${meta.alias}.normalised.named.vcf.gz
+    bcftools index -t ${meta.alias}.normalised.named.vcf.gz
     """
 }
 
@@ -135,7 +148,7 @@ process getVersions {
         path "versions.txt"
     script:
     """
-    medaka --version | sed 's/ /,/' >> versions.txt
+    run_clair3.sh --version | sed 's/ /,/' >> versions.txt
     minimap2 --version | sed 's/^/minimap2,/' >> versions.txt
     bcftools --version | head -n 1 | sed 's/ /,/' >> versions.txt
     samtools --version | head -n 1 | sed 's/ /,/' >> versions.txt
@@ -358,7 +371,6 @@ workflow pipeline {
 // entrypoint workflow
 WorkflowMain.initialise(workflow, params, log)
 
-// here we should check if the scheme exists, if not, list schemes and exit
 
 
 
@@ -397,19 +409,16 @@ workflow {
       """
 
       if (params.list_schemes) {
-        exit 1
       }
 
 
 
       if (!valid_scheme_versions.any { it == params.scheme_version}) {
           println("`--scheme_version` should be one of: $valid_scheme_versions, for `--scheme_name`: $params.scheme_name")
-          exit 1
       }
 
       if (params.sample && params.detect_samples) {
           println("Select either `--sample` or `--detect_samples`, not both")
-          exit 1
       }
 
       if (!params.min_len) {
@@ -459,7 +468,6 @@ workflow {
       // check to make sure min and max length have been set
       if (!params.max_len || !params.min_len) {
           log.info """${c_purple}EXITING: --min_len and --max_len parameters must be specified when using custom schemes.${c_reset}"""
-          exit 1
       }
 
       params._max_len = params.max_len
