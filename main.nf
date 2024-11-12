@@ -468,6 +468,7 @@ workflow {
       // check to make sure min and max length have been set
       if (!params.max_len || !params.min_len) {
           log.info """${c_purple}EXITING: --min_len and --max_len parameters must be specified when using custom schemes.${c_reset}"""
+            exit 1
       }
 
       params._max_len = params.max_len
