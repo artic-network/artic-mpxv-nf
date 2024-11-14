@@ -69,7 +69,15 @@ process runArtic {
         model_str = ""
     }
 
+    if (workflow.session.config.conda.enabled) {
+        get_models_str = "artic_get_models"
+    } else {
+        ""
+    }
+
     """
+    ${get_models_str}
+
     artic guppyplex --skip-quality-check \
         --min-length ${params._min_len} --max-length ${params._max_len} \
         --directory . --prefix ${meta.alias}
