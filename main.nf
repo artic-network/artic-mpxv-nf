@@ -337,7 +337,7 @@ workflow pipeline {
                     [meta, reads, stats]
                 }
             }
-            if (workflow.session.config.conda.enabled) {
+            if (workflow.session.config.conda) {
                 get_models()
                 ch_models_ok = get_models.out
             } else {
