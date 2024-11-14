@@ -341,7 +341,7 @@ workflow pipeline {
                 get_models()
                 ch_models_ok = get_models.out
             } else {
-                ch_models_ok = Channel.of("models_ok")
+                ch_models_ok = Channel.value("models_ok")
             }
 
             artic = runArtic(samples, primers, reference, ch_models_ok)
