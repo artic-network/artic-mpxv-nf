@@ -32,6 +32,7 @@ process runArtic {
         tuple val(meta), path(fastq_file), path(fastq_stats)
         path bed
         path ref
+        val models_ok
     output:
         path "${meta.alias}.consensus.fasta", emit: consensus
         path "${meta.alias}.minion.log.txt", emit: artic_log
@@ -290,6 +291,19 @@ process get_bed_ref {
     """
 }
 
+process get_models {
+    label "artic"
+    cpus 1
+    output:
+        val "models_ok"
+    
+    script:
+
+    """
+    artic_get_models
+    """
+}
+
 // workflow module
 workflow pipeline {
     take:
@@ -323,7 +337,14 @@ workflow pipeline {
                     [meta, reads, stats]
                 }
             }
-            artic = runArtic(samples, primers, reference)
+            if (workflow.session.config.conda) {
+                get_models()
+                ch_models_ok = get_models.out
+            } else {
+                ch_models_ok = Channel.value("models_ok")
+            }
+
+            artic = runArtic(samples, primers, reference, ch_models_ok)
             // all_depth = combineDepth(artic.depth_stats.collect())
             // collate consensus and variants
             all_consensus = allConsensus(artic.consensus.collect())
