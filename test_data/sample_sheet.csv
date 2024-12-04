@@ -1,4 +1,4 @@
-barcode,sample_id,alias,type
+barcode,sample_name,alias,type
 barcode01,SRR12480552,SRR12480552,test_sample
 barcode02,SRR12447502,SRR12447502,test_sample
 barcode03,SRR12447501,SRR12447501,test_sample
