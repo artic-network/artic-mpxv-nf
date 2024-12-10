@@ -21,7 +21,6 @@ process checkSampleSheet {
     """
 }
 
-
 process runArtic {
     label "artic"
     cpus params.artic_threads
@@ -30,8 +29,6 @@ process runArtic {
 
     input:
         tuple val(meta), path(fastq_file), path(fastq_stats)
-        path bed
-        path ref
         val models_ok
     output:
         path "${meta.alias}.consensus.fasta", emit: consensus
@@ -58,10 +55,10 @@ process runArtic {
     // `meta.basecall_models[0]` (there should only be one value in the list because
     // we're running ingress with `allow_multiple_basecall_models: false`; note that
     // `[0]` on an empty list returns `null`)
-    if (!meta.basecall_models[0]) {
-        println "Found no basecall model information in the input data for " + \
-            "sample '$meta.alias'. If the process later fails, please provide the appropriate clair3 model with the " + \
-            "`--override_model` parameter."
+    if (!meta.basecall_models[0] && !params.override_model) {
+        error "Found no basecall model information in the input data for " + \
+            "sample '$meta.alias' and no model provided with the `--override_model` " + \
+            "parameter. Please rerun with the `--override_model` parameter."
     }
 
     if (params.override_model) {
@@ -70,21 +67,41 @@ process runArtic {
         model_str = ""
     }
 
-    """
-    artic guppyplex --skip-quality-check \
-        --min-length ${params._min_len} --max-length ${params._max_len} \
-        --directory . --prefix ${meta.alias}
+    if (!params.custom_scheme) {
+        """
+        artic guppyplex --skip-quality-check \
+            --min-length ${params._min_len} --max-length ${params._max_len} \
+            --directory . --prefix ${meta.alias}
 
-    artic minion --normalise ${params.normalise} --threads ${task.cpus} \
-        --read-file ${meta.alias}_..fastq \
-        --bed ${bed} \
-        --ref ${ref} \
-        ${model_str} \
-        ${meta.alias}
+        artic minion --normalise ${params.normalise} --threads ${task.cpus} \
+            --read-file ${meta.alias}_..fastq \
+            --scheme-name ${params._scheme_name} \
+            --scheme-length ${params._scheme_length} \
+            --scheme-version ${params._scheme_version} \
+            --scheme-directory ${params.store_dir}/primer-schemes/
+            ${model_str} \
+            ${meta.alias}
 
-    zcat ${meta.alias}.normalised.vcf.gz | sed 's/SAMPLE/${meta.alias}/' | bgzip > ${meta.alias}.normalised.named.vcf.gz
-    bcftools index -t ${meta.alias}.normalised.named.vcf.gz
-    """
+        zcat ${meta.alias}.normalised.vcf.gz | sed 's/SAMPLE/${meta.alias}/' | bgzip > ${meta.alias}.normalised.named.vcf.gz
+        bcftools index -t ${meta.alias}.normalised.named.vcf.gz
+        """        
+    } else {
+        """
+        artic guppyplex --skip-quality-check \
+            --min-length ${params._min_len} --max-length ${params._max_len} \
+            --directory . --prefix ${meta.alias}
+
+        artic minion --normalise ${params.normalise} --threads ${task.cpus} \
+            --read-file ${meta.alias}_..fastq \
+            --bed ${params._bed} \
+            --ref ${params._ref} \
+            ${model_str} \
+            ${meta.alias}
+
+        zcat ${meta.alias}.normalised.vcf.gz | sed 's/SAMPLE/${meta.alias}/' | bgzip > ${meta.alias}.normalised.named.vcf.gz
+        bcftools index -t ${meta.alias}.normalised.named.vcf.gz
+        """
+    }
 }
 
 
@@ -274,23 +291,6 @@ process output {
     """
 }
 
-process get_bed_ref {
-    label "artic"
-    cpus 1
-    input:
-        path scheme_dir
-        val scheme_name
-        val scheme_version
-    output:
-        path "scheme.bed", emit: bed
-        path "reference.fasta", emit: ref
-
-    """
-    cp ${scheme_name}/${scheme_version}/primer.bed scheme.bed
-    cp ${scheme_name}/${scheme_version}/reference.fasta reference.fasta
-    """
-}
-
 process get_models {
     label "artic"
     cpus 1
@@ -308,16 +308,10 @@ process get_models {
 workflow pipeline {
     take:
         samples
-        // scheme_directory
-        scheme_dir
-        scheme_name
-        scheme_version
-        reference
-        primers
     main:
         software_versions = getVersions()
         // workflow_params = getParams()
-        combined_genotype_summary = Channel.empty()
+        // combined_genotype_summary = Channel.empty()
 
         if ((samples.getClass() == String) && (samples.startsWith("Error"))){
             samples = channel.of(samples)
@@ -393,9 +387,6 @@ workflow pipeline {
 WorkflowMain.initialise(workflow, params, log)
 
 
-
-
-
 workflow {
 
     Pinguscript.ping_start(nextflow, workflow, params)
@@ -444,7 +435,7 @@ workflow {
 
       if (!params.min_len) {
           params.remove('min_len')
-          if (params.scheme_version.startsWith("yale-mpox") || params.scheme_version.startsWith("rigshospitalet") || params.scheme_version.startsWith("artic-mpox") || params.scheme_version.startsWith("bccdc-mpox")) {
+          if (params.scheme_version.startsWith("yale-mpox") || params.scheme_version.startsWith("rigshospitalet") || params.scheme_version.startsWith("artic-mpox") || params.scheme_version.startsWith("bccdc-mpox") || params.scheme_version.startsWith("artic-inrb-mpox")) {
               params._min_len = 500
           } else {
               params._min_len = 500
@@ -455,7 +446,7 @@ workflow {
       }
       if (!params.max_len) {
           params.remove('max_len')
-            if (params.scheme_version.startsWith("yale-mpox") || params.scheme_version.startsWith("rigshospitalet") || params.scheme_version.startsWith("artic-mpox") || params.scheme_version.startsWith("bccdc-mpox")) {
+            if (params.scheme_version.startsWith("yale-mpox") || params.scheme_version.startsWith("rigshospitalet") || params.scheme_version.startsWith("artic-mpox") || params.scheme_version.startsWith("bccdc-mpox") || params.scheme_version.startsWith("artic-inrb-mpox")) {
               params._max_len = 3000
           } else {
                 params._max_len = 2500
@@ -464,27 +455,19 @@ workflow {
           params._max_len = params.max_len
           params.remove('max_len')
       }
-    
       
-      scheme_dir_name = "primer_schemes"
-      schemes = """./data/${scheme_dir_name}/${params.scheme_name}"""
-      scheme_dir = file(projectDir.resolve(schemes), type:'file', checkIfExists:true)
-    
-      primers_path = """./data/${scheme_dir_name}/${params.scheme_name}/${params.scheme_version}/primer.bed"""
-      primers = file(projectDir.resolve(primers_path), type:'file', checkIfExists:true)
+      scheme_splits = params.scheme_version.split("/")
 
-      reference_path = """./data/${scheme_dir_name}/${params.scheme_name}/${params.scheme_version}/reference.fasta"""
-      reference = file(projectDir.resolve(reference_path),type:'file', checkIfExists:true)
-
-      params._scheme_version = params.scheme_version
-      params._scheme_name = params.scheme_name
+      params._scheme_name = scheme_splits[0]
+      params._scheme_length = scheme_splits[1]
+      params._scheme_version = scheme_splits[2]
 
     } else {
       //custom scheme path defined
       log.info """${c_purple}Custom primer scheme selected: ${params.custom_scheme} (WARNING: We do not validate your scheme - use at your own risk!)${c_reset}"""
       //check path for required files
-      primers = file("""${params.custom_scheme}/primer.bed""", type:'file', checkIfExists:true)
-      reference = file("""${params.custom_scheme}/reference.fasta""", type:'file', checkIfExists:true)
+      params._bed = file("""${params.custom_scheme}/primer.bed""", type:'file', checkIfExists:true)
+      params._ref = file("""${params.custom_scheme}/reference.fasta""", type:'file', checkIfExists:true)
 
       // check to make sure min and max length have been set
       if (!params.max_len || !params.min_len) {
@@ -501,7 +484,6 @@ workflow {
       params._scheme_version = 'None'
       params._scheme_name = params.scheme_name
 
-      scheme_dir =  params.custom_scheme
     }
 
     if (!params.max_softclip_length) {
@@ -534,8 +516,7 @@ workflow {
         "allow_multiple_basecall_models":false,
     ])
     
-    results = pipeline(samples, scheme_dir, params._scheme_name, params._scheme_version, reference,
-        primers).toList() | output   
+    results = pipeline(samples) | output   
 }
 
 workflow.onComplete {
