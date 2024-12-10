@@ -367,41 +367,9 @@ workflow {
     c_purple = params.monochrome_logs ? '' : "\033[0;35m";
 
     if (!params.custom_scheme){
-
-    //   schemes = file(projectDir.resolve("./data/primer_schemes/**bed"), type: 'file', maxdepth: 10)
-
-    //   valid_scheme_versions = []
-
-    //   log.info """
-    //   ------------------------------------
-    //   Available Primer Schemes:
-    //   ------------------------------------
-    //   """
-    //   log.info """  Name\t\tVersion"""
-    //   for (scheme in schemes){
-    //     main = scheme.toString().split("primer_schemes/")[1]
-    //     name = main.split("/")[0]
-    //     version = """${main.split("/")[1]}/${main.split("/")[2]}"""
-    //     valid_scheme_versions.add(version)
-    //     log.info """${c_green}  ${name}\t${version}\t${c_reset}"""
-    //   }
-
-    //   log.info """
-    //   ------------------------------------
-    //   """
-
-    //   if (params.list_schemes) {
-    //   }
-
-
-
-    //   if (!valid_scheme_versions.any { it == params.scheme_version}) {
-    //       println("`--scheme_version` should be one of: $valid_scheme_versions")
-    //   }
-
-    //   if (params.sample && params.detect_samples) {
-    //       println("Select either `--sample` or `--detect_samples`, not both")
-    //   }
+      
+      params._bed = false
+      params._ref = false
 
       if (!params.min_len) {
           params.remove('min_len')
