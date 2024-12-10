@@ -24,7 +24,7 @@ process checkSampleSheet {
 process runArtic {
     label "artic"
     cpus params.artic_threads
-    errorStrategy { task.exitStatus in ((130..145) + 104) ? "retry" : "ignore" }
+    errorStrategy { task.exitStatus in ((130..145) + 104) ? "retry" : "terminate" }
     maxRetries 3
 
     input:
