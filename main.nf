@@ -453,7 +453,8 @@ workflow {
         "allow_multiple_basecall_models":false,
     ])
     
-    results = pipeline(samples) | output   
+    results = pipeline(samples)
+    output(results.out.toList())
 }
 
 workflow.onComplete {
