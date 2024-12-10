@@ -78,7 +78,7 @@ process runArtic {
             --scheme-name ${params._scheme_name} \
             --scheme-length ${params._scheme_length} \
             --scheme-version ${params._scheme_version} \
-            --scheme-directory ${params.store_dir}/primer-schemes/
+            --scheme-directory ${params.store_dir}/primer-schemes/ \
             ${model_str} \
             ${meta.alias}
 

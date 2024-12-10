@@ -95,7 +95,7 @@
           "format": "directory-path",
           "title": "Store directory name",
           "description": "Where to downloaded primer schemes for future use.",
-          "help_text": "Any downloaded primer schemes will be stored in this directory for future use. If not set when running from the command line, the schemes will be stored in the current working directory/store_dir. If this is run via epi2me by default they will be stored in your `epi2melabs/store_dir` directory.",
+          "help_text": "Any downloaded primer schemes will be stored in this directory for future use. If not set when running from the command line, the schemes will be stored in the current working directory/store_dir. If this is run via epi2me by default they will be stored in your `epi2melabs/data/` directory.",
           "default": "store_dir"
         }
       }
@@ -310,6 +310,14 @@
       "hidden": true
     },
     "_max_len": {
+      "type": "string",
+      "hidden": true
+    },
+    "_bed": {
+      "type": "string",
+      "hidden": true
+    },
+    "_ref": {
       "type": "string",
       "hidden": true
     },
