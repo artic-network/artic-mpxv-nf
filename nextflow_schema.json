@@ -43,7 +43,7 @@
           "type": "string",
           "default": "artic-inrb-mpox/2500/v1.0.0",
           "description": "Primer scheme version.",
-          "help_text": "Version of the primer scheme to use, `yale-mpox/v1.0.0-cladei` and `yale-mpox/v1.0.0-cladeii` are the same scheme but use separate reference fastas. If you select `artic-inrb-mpox/2500/v1.0.0` the pipeline will attempt to select the appropriate remap of the scheme based on your read data. If you have a custom scheme you can enter the details in the `custom_scheme` parameter.",
+          "help_text": "Version of the primer scheme to use, `yale-mpox/2000/v1.0.0-cladei` and `yale-mpox/2000/v1.0.0-cladeii` are the same scheme but use separate reference fastas. If you select `artic-inrb-mpox/2500/v1.0.0` the pipeline will attempt to select the appropriate remap of the scheme based on your read data. If you have a custom scheme you can enter the details in the `custom_scheme` parameter.",
           "enum": [
             "artic-inrb-mpox/2500/v1.0.0",
             "artic-inrb-mpox/400/v1.0.0",

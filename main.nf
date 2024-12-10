@@ -228,32 +228,6 @@ process allConsensus {
     """
 }
 
-
-process allVariants {
-    label "artic"
-    cpus 1
-    input:
-        tuple val(alias), file(vcfs), file(tbis)
-        file reference
-    output:
-        tuple file("all_variants.vcf.gz"), file("all_variants.vcf.gz.tbi")
-    """
-    for vcf in \$(ls *.vcf.gz)
-    do
-        bcftools norm -c s -O z --fasta-ref $reference \$vcf > norm.\$vcf
-        bcftools index -t norm.\$vcf
-    done
-    if [[ \$(ls norm.*.vcf.gz | wc -l) == "1" ]]; then
-        mv norm.*.vcf.gz all_variants.vcf.gz
-        mv norm.*.vcf.gz.tbi all_variants.vcf.gz.tbi
-    else
-        bcftools merge -o all_variants.vcf.gz -O z norm.*.vcf.gz
-        bcftools index -t all_variants.vcf.gz
-    fi
-    """
-}
-
-
 process squirrel {
     label "squirrel"
     cpus params.squirrel_threads
@@ -338,12 +312,10 @@ workflow pipeline {
                 ch_models_ok = Channel.value("models_ok")
             }
 
-            artic = runArtic(samples, primers, reference, ch_models_ok)
+            artic = runArtic(samples, ch_models_ok)
             // all_depth = combineDepth(artic.depth_stats.collect())
             // collate consensus and variants
             all_consensus = allConsensus(artic.consensus.collect())
-            all_variants = allVariants(
-                artic.pass_vcf.toList().transpose().toList(), reference)
             // genotype summary
             genotype_summary = Channel.fromPath("$projectDir/data/OPTIONAL_FILE")
 
@@ -354,7 +326,6 @@ workflow pipeline {
                 
                 results = all_consensus[0].concat(
                     all_consensus[1],
-                    all_variants[0].flatten(),
                     artic.primertrimmed_bam.flatMap { it -> [ it[1], it[2] ] },
                     artic.pass_vcf.flatMap { it -> [ it[1], it[2] ] },
                     artic.artic_log,
@@ -367,7 +338,6 @@ workflow pipeline {
             } else {
                 results = all_consensus[0].concat(
                     all_consensus[1],
-                    all_variants[0].flatten(),
                     artic.primertrimmed_bam.flatMap { it -> [ it[1], it[2] ] },
                     artic.pass_vcf.flatMap { it -> [ it[1], it[2] ] },
                     artic.artic_log,
@@ -426,7 +396,7 @@ workflow {
 
 
       if (!valid_scheme_versions.any { it == params.scheme_version}) {
-          println("`--scheme_version` should be one of: $valid_scheme_versions, for `--scheme_name`: $params.scheme_name")
+          println("`--scheme_version` should be one of: $valid_scheme_versions")
       }
 
       if (params.sample && params.detect_samples) {
@@ -482,7 +452,6 @@ workflow {
       params.remove('min_len')
 
       params._scheme_version = 'None'
-      params._scheme_name = params.scheme_name
 
     }
 
