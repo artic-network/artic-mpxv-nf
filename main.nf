@@ -21,17 +21,14 @@ process checkSampleSheet {
     """
 }
 
-
 process runArtic {
     label "artic"
     cpus params.artic_threads
-    errorStrategy { task.exitStatus in ((130..145) + 104) ? "retry" : "ignore" }
+    errorStrategy { task.exitStatus in ((130..145) + 104) ? "retry" : "terminate" }
     maxRetries 3
 
     input:
         tuple val(meta), path(fastq_file), path(fastq_stats)
-        path bed
-        path ref
         val models_ok
     output:
         path "${meta.alias}.consensus.fasta", emit: consensus
@@ -58,10 +55,10 @@ process runArtic {
     // `meta.basecall_models[0]` (there should only be one value in the list because
     // we're running ingress with `allow_multiple_basecall_models: false`; note that
     // `[0]` on an empty list returns `null`)
-    if (!meta.basecall_models[0]) {
-        println "Found no basecall model information in the input data for " + \
-            "sample '$meta.alias'. If the process later fails, please provide the appropriate clair3 model with the " + \
-            "`--override_model` parameter."
+    if (!meta.basecall_models[0] && !params.override_model) {
+        error "Found no basecall model information in the input data for " + \
+            "sample '$meta.alias' and no model provided with the `--override_model` " + \
+            "parameter. Please rerun with the `--override_model` parameter."
     }
 
     if (params.override_model) {
@@ -70,21 +67,41 @@ process runArtic {
         model_str = ""
     }
 
-    """
-    artic guppyplex --skip-quality-check \
-        --min-length ${params._min_len} --max-length ${params._max_len} \
-        --directory . --prefix ${meta.alias}
+    if (!params.custom_scheme) {
+        """
+        artic guppyplex --skip-quality-check \
+            --min-length ${params._min_len} --max-length ${params._max_len} \
+            --directory . --prefix ${meta.alias}
 
-    artic minion --normalise ${params.normalise} --threads ${task.cpus} \
-        --read-file ${meta.alias}_..fastq \
-        --bed ${bed} \
-        --ref ${ref} \
-        ${model_str} \
-        ${meta.alias}
+        artic minion --normalise ${params.normalise} --threads ${task.cpus} \
+            --read-file ${meta.alias}_..fastq \
+            --scheme-name ${params._scheme_name} \
+            --scheme-length ${params._scheme_length} \
+            --scheme-version ${params._scheme_version} \
+            --scheme-directory ${params.store_dir}/primer-schemes/ \
+            ${model_str} \
+            ${meta.alias}
 
-    zcat ${meta.alias}.normalised.vcf.gz | sed 's/SAMPLE/${meta.alias}/' | bgzip > ${meta.alias}.normalised.named.vcf.gz
-    bcftools index -t ${meta.alias}.normalised.named.vcf.gz
-    """
+        zcat ${meta.alias}.normalised.vcf.gz | sed 's/SAMPLE/${meta.alias}/' | bgzip > ${meta.alias}.normalised.named.vcf.gz
+        bcftools index -t ${meta.alias}.normalised.named.vcf.gz
+        """        
+    } else {
+        """
+        artic guppyplex --skip-quality-check \
+            --min-length ${params._min_len} --max-length ${params._max_len} \
+            --directory . --prefix ${meta.alias}
+
+        artic minion --normalise ${params.normalise} --threads ${task.cpus} \
+            --read-file ${meta.alias}_..fastq \
+            --bed ${params._bed} \
+            --ref ${params._ref} \
+            ${model_str} \
+            ${meta.alias}
+
+        zcat ${meta.alias}.normalised.vcf.gz | sed 's/SAMPLE/${meta.alias}/' | bgzip > ${meta.alias}.normalised.named.vcf.gz
+        bcftools index -t ${meta.alias}.normalised.named.vcf.gz
+        """
+    }
 }
 
 
@@ -211,32 +228,6 @@ process allConsensus {
     """
 }
 
-
-process allVariants {
-    label "artic"
-    cpus 1
-    input:
-        tuple val(alias), file(vcfs), file(tbis)
-        file reference
-    output:
-        tuple file("all_variants.vcf.gz"), file("all_variants.vcf.gz.tbi")
-    """
-    for vcf in \$(ls *.vcf.gz)
-    do
-        bcftools norm -c s -O z --fasta-ref $reference \$vcf > norm.\$vcf
-        bcftools index -t norm.\$vcf
-    done
-    if [[ \$(ls norm.*.vcf.gz | wc -l) == "1" ]]; then
-        mv norm.*.vcf.gz all_variants.vcf.gz
-        mv norm.*.vcf.gz.tbi all_variants.vcf.gz.tbi
-    else
-        bcftools merge -o all_variants.vcf.gz -O z norm.*.vcf.gz
-        bcftools index -t all_variants.vcf.gz
-    fi
-    """
-}
-
-
 process squirrel {
     label "squirrel"
     cpus params.squirrel_threads
@@ -274,23 +265,6 @@ process output {
     """
 }
 
-process get_bed_ref {
-    label "artic"
-    cpus 1
-    input:
-        path scheme_dir
-        val scheme_name
-        val scheme_version
-    output:
-        path "scheme.bed", emit: bed
-        path "reference.fasta", emit: ref
-
-    """
-    cp ${scheme_name}/${scheme_version}/primer.bed scheme.bed
-    cp ${scheme_name}/${scheme_version}/reference.fasta reference.fasta
-    """
-}
-
 process get_models {
     label "artic"
     cpus 1
@@ -308,16 +282,10 @@ process get_models {
 workflow pipeline {
     take:
         samples
-        // scheme_directory
-        scheme_dir
-        scheme_name
-        scheme_version
-        reference
-        primers
     main:
         software_versions = getVersions()
         // workflow_params = getParams()
-        combined_genotype_summary = Channel.empty()
+        // combined_genotype_summary = Channel.empty()
 
         if ((samples.getClass() == String) && (samples.startsWith("Error"))){
             samples = channel.of(samples)
@@ -344,12 +312,10 @@ workflow pipeline {
                 ch_models_ok = Channel.value("models_ok")
             }
 
-            artic = runArtic(samples, primers, reference, ch_models_ok)
+            artic = runArtic(samples, ch_models_ok)
             // all_depth = combineDepth(artic.depth_stats.collect())
             // collate consensus and variants
             all_consensus = allConsensus(artic.consensus.collect())
-            all_variants = allVariants(
-                artic.pass_vcf.toList().transpose().toList(), reference)
             // genotype summary
             genotype_summary = Channel.fromPath("$projectDir/data/OPTIONAL_FILE")
 
@@ -360,7 +326,6 @@ workflow pipeline {
                 
                 results = all_consensus[0].concat(
                     all_consensus[1],
-                    all_variants[0].flatten(),
                     artic.primertrimmed_bam.flatMap { it -> [ it[1], it[2] ] },
                     artic.pass_vcf.flatMap { it -> [ it[1], it[2] ] },
                     artic.artic_log,
@@ -373,7 +338,6 @@ workflow pipeline {
             } else {
                 results = all_consensus[0].concat(
                     all_consensus[1],
-                    all_variants[0].flatten(),
                     artic.primertrimmed_bam.flatMap { it -> [ it[1], it[2] ] },
                     artic.pass_vcf.flatMap { it -> [ it[1], it[2] ] },
                     artic.artic_log,
@@ -393,9 +357,6 @@ workflow pipeline {
 WorkflowMain.initialise(workflow, params, log)
 
 
-
-
-
 workflow {
 
     Pinguscript.ping_start(nextflow, workflow, params)
@@ -406,45 +367,13 @@ workflow {
     c_purple = params.monochrome_logs ? '' : "\033[0;35m";
 
     if (!params.custom_scheme){
-
-      schemes = file(projectDir.resolve("./data/primer_schemes/**bed"), type: 'file', maxdepth: 10)
-
-      valid_scheme_versions = []
-
-      log.info """
-      ------------------------------------
-      Available Primer Schemes:
-      ------------------------------------
-      """
-      log.info """  Name\t\tVersion"""
-      for (scheme in schemes){
-        main = scheme.toString().split("primer_schemes/")[1]
-        name = main.split("/")[0]
-        version = """${main.split("/")[1]}/${main.split("/")[2]}"""
-        valid_scheme_versions.add(version)
-        log.info """${c_green}  ${name}\t${version}\t${c_reset}"""
-      }
-
-      log.info """
-      ------------------------------------
-      """
-
-      if (params.list_schemes) {
-      }
-
-
-
-      if (!valid_scheme_versions.any { it == params.scheme_version}) {
-          println("`--scheme_version` should be one of: $valid_scheme_versions, for `--scheme_name`: $params.scheme_name")
-      }
-
-      if (params.sample && params.detect_samples) {
-          println("Select either `--sample` or `--detect_samples`, not both")
-      }
+      
+      params._bed = false
+      params._ref = false
 
       if (!params.min_len) {
           params.remove('min_len')
-          if (params.scheme_version.startsWith("yale-mpox") || params.scheme_version.startsWith("rigshospitalet") || params.scheme_version.startsWith("artic-mpox") || params.scheme_version.startsWith("bccdc-mpox")) {
+          if (params.scheme_version.startsWith("yale-mpox") || params.scheme_version.startsWith("rigshospitalet") || params.scheme_version.startsWith("artic-mpox") || params.scheme_version.startsWith("bccdc-mpox") || params.scheme_version.startsWith("artic-inrb-mpox")) {
               params._min_len = 500
           } else {
               params._min_len = 500
@@ -455,7 +384,7 @@ workflow {
       }
       if (!params.max_len) {
           params.remove('max_len')
-            if (params.scheme_version.startsWith("yale-mpox") || params.scheme_version.startsWith("rigshospitalet") || params.scheme_version.startsWith("artic-mpox") || params.scheme_version.startsWith("bccdc-mpox")) {
+            if (params.scheme_version.startsWith("yale-mpox") || params.scheme_version.startsWith("rigshospitalet") || params.scheme_version.startsWith("artic-mpox") || params.scheme_version.startsWith("bccdc-mpox") || params.scheme_version.startsWith("artic-inrb-mpox")) {
               params._max_len = 3000
           } else {
                 params._max_len = 2500
@@ -464,27 +393,19 @@ workflow {
           params._max_len = params.max_len
           params.remove('max_len')
       }
-    
       
-      scheme_dir_name = "primer_schemes"
-      schemes = """./data/${scheme_dir_name}/${params.scheme_name}"""
-      scheme_dir = file(projectDir.resolve(schemes), type:'file', checkIfExists:true)
-    
-      primers_path = """./data/${scheme_dir_name}/${params.scheme_name}/${params.scheme_version}/primer.bed"""
-      primers = file(projectDir.resolve(primers_path), type:'file', checkIfExists:true)
+      scheme_splits = params.scheme_version.split("/")
 
-      reference_path = """./data/${scheme_dir_name}/${params.scheme_name}/${params.scheme_version}/reference.fasta"""
-      reference = file(projectDir.resolve(reference_path),type:'file', checkIfExists:true)
-
-      params._scheme_version = params.scheme_version
-      params._scheme_name = params.scheme_name
+      params._scheme_name = scheme_splits[0]
+      params._scheme_length = scheme_splits[1]
+      params._scheme_version = scheme_splits[2]
 
     } else {
       //custom scheme path defined
       log.info """${c_purple}Custom primer scheme selected: ${params.custom_scheme} (WARNING: We do not validate your scheme - use at your own risk!)${c_reset}"""
       //check path for required files
-      primers = file("""${params.custom_scheme}/primer.bed""", type:'file', checkIfExists:true)
-      reference = file("""${params.custom_scheme}/reference.fasta""", type:'file', checkIfExists:true)
+      params._bed = file("""${params.custom_scheme}/primer.bed""", type:'file', checkIfExists:true)
+      params._ref = file("""${params.custom_scheme}/reference.fasta""", type:'file', checkIfExists:true)
 
       // check to make sure min and max length have been set
       if (!params.max_len || !params.min_len) {
@@ -499,9 +420,7 @@ workflow {
       params.remove('min_len')
 
       params._scheme_version = 'None'
-      params._scheme_name = params.scheme_name
 
-      scheme_dir =  params.custom_scheme
     }
 
     if (!params.max_softclip_length) {
@@ -534,8 +453,8 @@ workflow {
         "allow_multiple_basecall_models":false,
     ])
     
-    results = pipeline(samples, scheme_dir, params._scheme_name, params._scheme_version, reference,
-        primers).toList() | output   
+    pipeline(samples)
+    output(pipeline.out.toList())
 }
 
 workflow.onComplete {
