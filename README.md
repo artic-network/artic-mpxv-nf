@@ -9,14 +9,6 @@ The artic-mpxv-nf workflow implements an ARTIC FieldBioinformatics
 workflow for the purpose of preparing consensus sequences from MPXV
 genomes that have been DNA sequenced using a pooled tiling amplicon strategy.
 
-The workflow consumes a folder containing demultiplexed sequence reads as
-prepared by either MinKNOW, Guppy, or Dorado. The workflow needs to know the primer
-scheme that has been used during genome amplification and library preparation
-e.g. `yale-mpox/v1.0.1` or `erasmus/v1.0.0`. Other parameters can be specified too e.g.
-assign sample names to the barcodes or to adjust the length distribution of
-acceptable amplicon sequences.
-
-
 # Credits / Acknowledgements
 
 This pipeline only works due to the ongoing efforts of many people performing the often thankless
@@ -130,9 +122,8 @@ input_reads.fastq   ─── input_directory  ─── input_directory
 
 | Nextflow parameter name  | Type | Description | Help | Default |
 |--------------------------|------|-------------|------|---------|
-| scheme_name | string | Primer scheme name. | This should be set to `SARS-CoV-2`, or `spike-seq` or your custom scheme name. This affects the choice of scheme versions you can use. The only scheme versions compatible with `spike-seq` are `ONT/V1` and `ONT/V4.1` | MPXV |
-| scheme_version | string | Primer scheme version. | This is the version of the primer scheme to use. | artic-inrb-mpox/v1.0.0-cladeib |
-| custom_scheme | string | Path to a custom scheme. | If you have a custom primer scheme you can enter the details here. This must be the full path to the directory containing your appropriately named scheme bed and fasta files; <SCHEME_NAME>.bed and <SCHEME_NAME>.fasta. |  |
+| scheme_version | string | Primer scheme name. | Version of the primer scheme to use, `yale-mpox/2000/v1.0.0-cladei` and `yale-mpox/2000/v1.0.0-cladeii` are the same scheme but use separate reference fastas. If you select `artic-inrb-mpox/2500/v1.0.0` the pipeline will attempt to select the appropriate remap of the scheme based on your read data. If you have a custom scheme you can enter the details in the `custom_scheme` parameter. | artic-inrb-mpox/2500/v1.0.0 |
+| custom_scheme | string | Path to a custom scheme. | If you have a custom primer scheme you can enter the details here. This must be the full path to the directory containing your appropriately named scheme bed and fasta files; primer.bed and reference.fasta. |  |
 
 
 ### Sample Options
