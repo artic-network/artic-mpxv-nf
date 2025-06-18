@@ -28,7 +28,7 @@ process runArtic {
     maxRetries 3
 
     input:
-        tuple val(meta), path(fastq_file), path(fastq_stats)
+        tuple val(meta), path(fastq_file), path(fastq_stats), path(scheme_dir)
         val models_ok
     output:
         path "${meta.alias}.consensus.fasta", emit: consensus
@@ -75,9 +75,9 @@ process runArtic {
 
         artic minion --normalise ${params.normalise} --threads ${task.cpus} \
             --read-file ${meta.alias}_..fastq \
-            --scheme-name ${params._scheme_name} \
-            --scheme-length ${params._scheme_length} \
-            --scheme-version ${params._scheme_version} \
+            --scheme-name ${params.parsed_scheme_name} \
+            --scheme-length ${params.parsed_scheme_length} \
+            --scheme-version ${params.parsed_scheme_version} \
             --scheme-directory ${params.store_dir}/primer-schemes/ \
             ${model_str} \
             ${meta.alias}
@@ -93,8 +93,8 @@ process runArtic {
 
         artic minion --normalise ${params.normalise} --threads ${task.cpus} \
             --read-file ${meta.alias}_..fastq \
-            --bed ${params._bed} \
-            --ref ${params._ref} \
+            --bed ${scheme_dir}/primer.bed \
+            --ref ${scheme_dir}/reference.fasta \
             ${model_str} \
             ${meta.alias}
 
@@ -251,7 +251,7 @@ process squirrel {
 // See https://github.com/nextflow-io/nextflow/issues/1636
 // This is the only way to publish files from a workflow whilst
 // decoupling the publish from the process steps.
-process output {
+process output_results {
     // publish inputs to output directory
     label "artic"
 
@@ -282,6 +282,7 @@ process get_models {
 workflow pipeline {
     take:
         samples
+        scheme_dir
     main:
         software_versions = getVersions()
         // workflow_params = getParams()
@@ -312,7 +313,16 @@ workflow pipeline {
                 ch_models_ok = Channel.value("models_ok")
             }
 
-            artic = runArtic(samples, ch_models_ok)
+            ch_artic_in = samples.map { meta, reads, stats ->
+                [
+                    meta,
+                    reads,
+                    stats,
+                    scheme_dir
+                ]
+            }
+
+            artic = runArtic(ch_artic_in, ch_models_ok)
             // all_depth = combineDepth(artic.depth_stats.collect())
             // collate consensus and variants
             all_consensus = allConsensus(artic.consensus.collect())
@@ -370,6 +380,11 @@ workflow {
       
       params._bed = false
       params._ref = false
+      scheme_dir = []
+
+      if (!params.scheme_version) {
+          error "${c_purple}EXITING: --scheme_version parameter must be specified.${c_reset}"
+      }
 
       if (!params.min_len) {
           params.remove('min_len')
@@ -395,10 +410,14 @@ workflow {
       }
       
       scheme_splits = params.scheme_version.split("/")
+      if (scheme_splits.size() != 3) {
+        error "${c_purple}EXITING: --scheme_version parameter must be in the format 'scheme_name/scheme_length/scheme_version' (e.g. 'artic-inrb-mpox/2500/v1.0.0').${c_reset}"
+      }
 
-      params._scheme_name = scheme_splits[0]
-      params._scheme_length = scheme_splits[1]
-      params._scheme_version = scheme_splits[2]
+      params.parsed_scheme_name = scheme_splits[0]
+      params.parsed_scheme_length = scheme_splits[1]
+      params.parsed_scheme_version = scheme_splits[2]
+      println """${c_purple}Using primer scheme: ${params.parsed_scheme_name} (${params.parsed_scheme_length} bp, version ${params.parsed_scheme_version})${c_reset}"""
 
     } else {
       //custom scheme path defined
@@ -406,6 +425,8 @@ workflow {
       //check path for required files
       params._bed = file("""${params.custom_scheme}/primer.bed""", type:'file', checkIfExists:true)
       params._ref = file("""${params.custom_scheme}/reference.fasta""", type:'file', checkIfExists:true)
+
+      scheme_dir = file(params.custom_scheme, type: 'dir', checkIfExists: true)
 
       // check to make sure min and max length have been set
       if (!params.max_len || !params.min_len) {
@@ -453,8 +474,8 @@ workflow {
         "allow_multiple_basecall_models":false,
     ])
     
-    pipeline(samples)
-    output(pipeline.out.toList())
+    pipeline(samples, scheme_dir)
+    output_results(pipeline.out.results.toList())
 }
 
 workflow.onComplete {
