@@ -235,7 +235,7 @@ process squirrel {
     input:
         path "all_consensus.fasta"
     output:
-        path "squirrel/all_consensus.aln.fasta", emit: alignment
+        path "squirrel/all_consensus*.aln.fasta", emit: alignment
         path "squirrel", emit: all
         path "squirrel.version", emit: version
 
@@ -243,7 +243,7 @@ process squirrel {
     """
     export XDG_CACHE_HOME=\$PWD/.cache
     squirrel --version 2>&1 | sed 's/: /,/' > squirrel.version
-    squirrel "all_consensus.fasta" -o squirrel --no-mask --seq-qc --outfile all_consensus.aln.fasta --tempdir squirrel_tmp -t ${task.cpus} $params._squirrel_options
+    squirrel "all_consensus.fasta" -o squirrel --no-mask --seq-qc --outfile all_consensus.aln.fasta --tempdir squirrel_tmp -t ${task.cpus} --clade ${params.clade} $params._squirrel_options
     """
 }
 
