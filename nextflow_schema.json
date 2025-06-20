@@ -109,13 +109,15 @@
           "type": "string",
           "title": "Clade",
           "description": "Specify whether the sequencing run is primarily `cladeI` or `cladeII`.",
+          "default": "split",
           "enum": [
             "cladei",
             "cladeia",
             "cladeib",
             "cladeii",
             "cladeiia",
-            "cladeiib"
+            "cladeiib",
+            "split"
           ],
           "help_text": ""
         },
@@ -134,7 +136,7 @@
         "squirrel_options": {
           "type": "string",
           "hidden": "true",
-          "description": "Pass options to Squirrel, for example \"--clade cladeii\"."
+          "description": "Pass options to Squirrel, for example \"--run-phylo\"."
         }
       },
       "required": [
