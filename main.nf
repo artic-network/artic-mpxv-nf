@@ -342,7 +342,7 @@ workflow pipeline {
                     artic.consensus,
                     artic.amplicon_depths,
                     artic.raw_bam.flatMap { it -> [ it[0], it[1] ] },
-                    squirrel.out.alignment,
+                    squirrel.out.alignment.flatMap { it -> [ it ] },
                     squirrel.out.all.flatMap { it -> [ it ] },
                     )
             } else {
